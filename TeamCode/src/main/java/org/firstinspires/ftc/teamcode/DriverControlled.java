@@ -50,33 +50,39 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TestOpMode", group="Linear Opmode")
+@TeleOp(name="Driver Control", group="Linear Opmode")
 @Disabled
-public class TestOpMode extends LinearOpMode {
+public class DriverControlled extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private Mugurel robot;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        DcMotor motor = hardwareMap.dcMotor.get("motor");
+        robot = new Mugurel(hardwareMap);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
+        while (opModeIsActive())
+        {
+            /// Gamepad 1
+            robot.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-            double y = -gamepad1.left_stick_y;
 
-            motor.setPower(y);
+            /// Gamepad 2
+
+            /// bumpers - extend
+            /// left_stick rotor
+            /// x/b collector
 
             // Show the elapsed game time and wheel power.
-            telemetry.addData("Gamepad", y);
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
         }
