@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 @TeleOp(name="Driver Control", group="Linear Opmode")
-@Disabled
+//@Disabled
 public class DriverControlled extends LinearOpMode {
 
     // Declare OpMode members.
@@ -68,19 +68,29 @@ public class DriverControlled extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
+        robot.afterStartInit();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive())
         {
             /// Gamepad 1
-            robot.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+            if(gamepad1.dpad_up)    robot.runner.facing(Mugurel.Face.FRONT);
+            if(gamepad1.dpad_down)  robot.runner.facing(Mugurel.Face.BACK);
 
+            if(gamepad1.left_trigger >= 0.5) robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, 0.25);
+            else if(gamepad1.right_trigger >= 0.5) robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, 0.5);
+            else robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
             /// Gamepad 2
 
-            /// bumpers - extend
-            /// left_stick rotor
-            /// x/b collector
+            robot.collector.setRotationPower(-gamepad2.left_stick_y);
+
+            if(gamepad2.left_bumper)    robot.collector.extend(Mugurel.ExtenderDirection.CONTRACT);
+            else if(gamepad2.right_bumper)  robot.collector.extend(Mugurel.ExtenderDirection.EXTEND);
+            else    robot.collector.extend(Mugurel.ExtenderDirection.STOP);
+
+            if(gamepad2.x)  robot.collector.collectorPress(Mugurel.CollectionType.COLLECT);
+            if(gamepad2.b)  robot.collector.collectorPress(Mugurel.CollectionType.SPIT);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
