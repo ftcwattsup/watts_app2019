@@ -71,7 +71,9 @@ public class TestOpMode extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            double y = -gamepad1.left_stick_y;
+            double y = gamepad1.left_stick_y;
+
+            y *= 0.4;
 
             motor.setPower(y);
 

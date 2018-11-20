@@ -70,6 +70,8 @@ public class DriverControlled extends LinearOpMode {
         runtime.reset();
         robot.afterStartInit();
 
+        boolean g2b = false, g2x = false;
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive())
         {
@@ -83,14 +85,33 @@ public class DriverControlled extends LinearOpMode {
 
             /// Gamepad 2
 
-            robot.collector.setRotationPower(-gamepad2.left_stick_y);
+            if(gamepad2.a)  robot.collector.setRotationPower(-gamepad2.left_stick_y * 0.7);
+            else robot.collector.setRotationPower(-gamepad2.left_stick_y * 0.3);
 
             if(gamepad2.left_bumper)    robot.collector.extend(Mugurel.ExtenderDirection.CONTRACT);
             else if(gamepad2.right_bumper)  robot.collector.extend(Mugurel.ExtenderDirection.EXTEND);
             else    robot.collector.extend(Mugurel.ExtenderDirection.STOP);
 
-            if(gamepad2.x)  robot.collector.collectorPress(Mugurel.CollectionType.COLLECT);
-            if(gamepad2.b)  robot.collector.collectorPress(Mugurel.CollectionType.SPIT);
+            if(gamepad2.x)
+            {
+                if(!g2x)
+                {
+                    robot.collector.collectorPress(Mugurel.CollectionType.COLLECT);
+                    g2x = true;
+                }
+            }
+            else g2x = false;
+
+            if(gamepad2.b)
+            {
+                if(!g2b)
+                {
+                    robot.collector.collectorPress(Mugurel.CollectionType.SPIT);
+                    g2b = true;
+                }
+            }
+            else
+                g2b = false;
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());

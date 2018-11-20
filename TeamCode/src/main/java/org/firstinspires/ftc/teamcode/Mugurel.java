@@ -23,8 +23,8 @@ public class Mugurel
         Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb)
         {
             initialLeftFront = lf; initialRightFront = rf; initialLeftBack = lb; initialRightBack = rb;
-            setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             facing(Face.FRONT);
+            setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
         public void afterStartInit()
@@ -72,7 +72,7 @@ public class Mugurel
             x = scale(x); y = scale(y); r = scale(r);
 
             if( Math.abs(r) < eps ) setPower(y, y, rat);
-            else if( Math.abs(y) < eps )    setPower(-r, r, rat);
+            else if( Math.abs(y) < eps )    setPower(r, -r, rat);
             else if( r < 0.0 )  setPower(y * (1.0 + r), y, rat);
             else if( r > 0.0 )  setPower(y, y * (1.0 - r), rat);
         }
@@ -83,21 +83,23 @@ public class Mugurel
     {
         private DcMotor rotor, extender, collector;
 
-        private final double collectorPower = 0.75;
-        private final double extenderPower = 0.75;
+        private final double collectorPower = 1.0;
+        private final double extenderPower = 0.5;
         private CollectionType collectorState;
 
         Collector(DcMotor r, DcMotor e, DcMotor c)
         {
             rotor = r; extender = e; collector = c;
 
-            rotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            rotor.setDirection(DcMotorSimple.Direction.REVERSE);
             extender.setDirection(DcMotorSimple.Direction.FORWARD);
             collector.setDirection(DcMotorSimple.Direction.FORWARD);
 
             rotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             collector.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            collectorState = CollectionType.STOP;
         }
 
         public void afterStartInit()
