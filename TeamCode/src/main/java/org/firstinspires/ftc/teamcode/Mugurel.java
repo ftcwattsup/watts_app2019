@@ -5,25 +5,52 @@ import android.text.style.LineHeightSpan;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 public class Mugurel
 {
     public enum Face { FRONT, BACK };
-    public enum CollectionType { COLLECT, SPIT, STOP };
-    public enum ExtenderDirection { EXTEND, CONTRACT, STOP };
 
     public class Runner
     {
-        Face face;
-        private DcMotor leftFront, rightFront, leftBack, rightBack;
-        private DcMotor initialLeftFront, initialRightFront, initialLeftBack, initialRightBack;
+        /**
+         * Motor functions
+         */
+        public class MotorPowers
+        {
+            public double lf, lb, rf, rb;
+            MotorPowers() { lf = lb = rf = rb = 0; }
+            MotorPowers(double _lf, double _lb, double _rf, double _rb) { lf = _lf; lb = _lb; rf = _rf; rb = _rb; }
 
-        private static final double eps = 1e-6;
+            public void normalize()
+            {
+                double mx = Math.max( Math.max(Math.abs(lf), Math.abs(lb)), Math.max(Math.abs(rf), Math.abs(rb)));
+                if(mx > 1.0)
+                {
+                    lf /= mx;
+                    lb /= mx;
+                    rf /= mx;
+                    rb /= mx;
+                }
+            }
+
+            public void rap(double r)
+            {
+                lf *= r; lb *= r; rf *= r; rb *= r;
+            }
+        }
+        public DcMotor leftFront, rightFront, leftBack, rightBack;
+        public double faceAngle;
+        public final double wheelAngle = Math.PI / 4.0;
 
         Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb)
         {
-            initialLeftFront = lf; initialRightFront = rf; initialLeftBack = lb; initialRightBack = rb;
-            facing(Face.FRONT);
+            leftFront = lf; rightFront = rf; leftBack = lb; rightBack = rb;
+            faceAngle = 0;
+            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
+            leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
             setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
@@ -34,107 +61,64 @@ public class Mugurel
 
         public void setMode(DcMotor.RunMode mode) { leftFront.setMode(mode); leftBack.setMode(mode); rightFront.setMode(mode); rightBack.setMode(mode); }
 
-        public void setPower(double left, double right, double rat)
+        public void setPower(MotorPowers pw) { setPower(pw.lf, pw.lb, pw.rf, pw.rb); }
+        public void setPower(double lf, double lb, double rf, double rb)
         {
-            leftFront.setPower(left * rat);
-            leftBack.setPower(left * rat);
-            rightFront.setPower(right * rat);
-            rightBack.setPower(right * rat);
-        }
-        public void setPower(double left, double right) { setPower(left, right, 1.0); }
-
-        public void facing(Face f)
-        {
-            if(face == f)   return;
-
-            if(f == Face.FRONT)
-            {
-                leftFront = initialLeftFront; leftBack = initialLeftBack; rightFront = initialRightFront; rightBack = initialRightBack;
-            }
-
-            if(f == Face.BACK)
-            {
-                leftFront = initialRightBack; leftBack = initialRightFront; rightFront = initialLeftBack; rightBack = initialLeftFront;
-            }
-
-            leftFront.setDirection(DcMotorSimple.Direction.FORWARD); leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
-            rightFront.setDirection(DcMotorSimple.Direction.REVERSE); rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setPower(lf);
+            leftBack.setPower(lb);
+            rightFront.setPower(rf);
+            rightBack.setPower(rb);
         }
 
-        public double scale(double x)
+        /**
+         * Move + Drive
+         */
+        public MotorPowers basicDrive(double x, double y, double r)
         {
-            return x;
-            /// TODO: try x^3
+            double pw[] = new double[4];
+            pw[0] = x + y + r;
+            pw[1] = -x + y - r;
+            pw[2] = -x + y + r;
+            pw[3] = x + y - r;
+
+            MotorPowers mpw = new MotorPowers(pw[0], pw[2], pw[1], pw[3]);
+            mpw.normalize();
+            return mpw;
         }
 
-        public void move(double x, double y, double r, double rat)
+        public MotorPowers angleDriveFromAxes(double x, double y, double r)
         {
-            x = scale(x); y = scale(y); r = scale(r);
-
-            if( Math.abs(r) < eps ) setPower(y, y, rat);
-            else if( Math.abs(y) < eps )    setPower(r, -r, rat);
-            else if( r < 0.0 )  setPower(y * (1.0 + r), y, rat);
-            else if( r > 0.0 )  setPower(y, y * (1.0 - r), rat);
-        }
-        public void move(double x, double y, double r) { move(x, y, r, 1.0); }
-    }
-
-    public class Collector
-    {
-        private DcMotor rotor, extender, collector;
-
-        private final double collectorPower = 1.0;
-        private final double extenderPower = 0.5;
-        private CollectionType collectorState;
-
-        Collector(DcMotor r, DcMotor e, DcMotor c)
-        {
-            rotor = r; extender = e; collector = c;
-
-            rotor.setDirection(DcMotorSimple.Direction.REVERSE);
-            extender.setDirection(DcMotorSimple.Direction.FORWARD);
-            collector.setDirection(DcMotorSimple.Direction.FORWARD);
-
-            rotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            collector.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-            collectorState = CollectionType.STOP;
+            double angle = Math.atan2(y, x);
+            if(angle < 0)   angle += 2 * Math.PI;
+            double speed = Math.sqrt(x * x + y * y);
+            return angleDrive(speed, angle, r);
         }
 
-        public void afterStartInit()
+        public MotorPowers angleDrive(double speed, double angle, double rot)
         {
-            rotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            collector.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            angle += faceAngle;
+            if(angle >= 2 * Math.PI) angle -= 2 * Math.PI;
+
+            double lf = speed * Math.sin(angle + wheelAngle) - rot;
+            double rf = speed * Math.cos(angle + wheelAngle) + rot;
+            double lb = speed * Math.cos(angle + wheelAngle) - rot;
+            double rb = speed * Math.sin(angle + wheelAngle) + rot;
+
+            MotorPowers mpw = new MotorPowers(lf, lb, rf, rb);
+            mpw.normalize();
+            return mpw;
         }
 
-        public void setRotationPower(double power) { rotor.setPower(power); }
-
-        public void extend(ExtenderDirection direction)
+        public void move(double x, double y, double r) { move(x, y, r, 1.0);}
+        public void move(double x, double y, double r, double rap)
         {
-            if(direction == ExtenderDirection.EXTEND)   extender.setPower(extenderPower);
-            else if(direction == ExtenderDirection.CONTRACT)    extender.setPower(-extenderPower);
-            else if(direction == ExtenderDirection.STOP)    extender.setPower(0.0);
-        }
-
-        public void collect(CollectionType type)
-        {
-            if(type == CollectionType.COLLECT)  collector.setPower(collectorPower);
-            else if(type == CollectionType.SPIT)    collector.setPower(-collectorPower);
-            else if(type == CollectionType.STOP)    collector.setPower(0.0);
-            collectorState = type;
-        }
-
-        public void collectorPress(CollectionType type)
-        {
-            if(type == collectorState)  collect(CollectionType.STOP);
-            else    collect(type);
+            MotorPowers pw = angleDriveFromAxes(x, y, r);
+            pw.rap(rap);
+            setPower(pw);
         }
     }
 
     public Runner runner;
-    public Collector collector;
 
     Mugurel(HardwareMap hm)
     {
@@ -144,17 +128,10 @@ public class Mugurel
                 hm.get(DcMotor.class, Config.leftBack),
                 hm.get(DcMotor.class, Config.rightBack)
         );
-
-        collector = new Collector(
-                hm.get(DcMotor.class, Config.rotor),
-                hm.get(DcMotor.class, Config.extender),
-                hm.get(DcMotor.class, Config.collector)
-        );
     }
 
     public void afterStartInit()
     {
         runner.afterStartInit();
-        collector.afterStartInit();
     }
 }

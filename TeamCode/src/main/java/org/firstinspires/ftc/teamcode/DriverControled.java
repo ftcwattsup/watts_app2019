@@ -50,9 +50,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Control", group="Linear Opmode")
-@Disabled
-public class DriverControlled extends LinearOpMode {
+@TeleOp(name="Driver Controled", group="Linear Opmode")
+//@Disabled
+public class DriverControled extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -70,48 +70,10 @@ public class DriverControlled extends LinearOpMode {
         runtime.reset();
         robot.afterStartInit();
 
-        boolean g2b = false, g2x = false;
-
         // run until the end of the match (driver presses STOP)
-        while (opModeIsActive())
-        {
-            /// Gamepad 1
-            if(gamepad1.dpad_up)    robot.runner.facing(Mugurel.Face.FRONT);
-            if(gamepad1.dpad_down)  robot.runner.facing(Mugurel.Face.BACK);
+        while (opModeIsActive()) {
 
-            if(gamepad1.left_trigger >= 0.5) robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, 0.25);
-            else if(gamepad1.right_trigger >= 0.5) robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, 0.5);
-            else robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
-
-            /// Gamepad 2
-
-            if(gamepad2.a)  robot.collector.setRotationPower(-gamepad2.left_stick_y * 0.7);
-            else robot.collector.setRotationPower(-gamepad2.left_stick_y * 0.3);
-
-            if(gamepad2.left_bumper)    robot.collector.extend(Mugurel.ExtenderDirection.CONTRACT);
-            else if(gamepad2.right_bumper)  robot.collector.extend(Mugurel.ExtenderDirection.EXTEND);
-            else    robot.collector.extend(Mugurel.ExtenderDirection.STOP);
-
-            if(gamepad2.x)
-            {
-                if(!g2x)
-                {
-                    robot.collector.collectorPress(Mugurel.CollectionType.COLLECT);
-                    g2x = true;
-                }
-            }
-            else g2x = false;
-
-            if(gamepad2.b)
-            {
-                if(!g2b)
-                {
-                    robot.collector.collectorPress(Mugurel.CollectionType.SPIT);
-                    g2b = true;
-                }
-            }
-            else
-                g2b = false;
+            robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
