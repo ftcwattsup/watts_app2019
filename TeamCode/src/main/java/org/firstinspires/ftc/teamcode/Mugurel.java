@@ -46,7 +46,7 @@ public class Mugurel
         Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb)
         {
             leftFront = lf; rightFront = rf; leftBack = lb; rightBack = rb;
-            faceAngle = 0;
+            faceAngle = -Math.PI / 2.0;
             leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
             leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
             rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
