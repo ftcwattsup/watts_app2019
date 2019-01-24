@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.sun.source.tree.Tree;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,7 +13,7 @@ public class MyGamepad
 {
     public class Toggle
     {
-        boolean value = false, pressed = false;
+        public boolean value = false, pressed = false;
         Toggle() { ; }
 
         public boolean query(boolean press)
@@ -20,7 +22,7 @@ public class MyGamepad
             {
                 if(!pressed)
                 {
-                    value ^= true;
+                    value = !value;
                     pressed = true;
                     return true;
                 }
@@ -130,7 +132,7 @@ public class MyGamepad
         return getRawValue(axe);
     }
 
-    void update()
+    public void update()
     {
         for(Buttons btn: Buttons.values())
         {
@@ -142,8 +144,29 @@ public class MyGamepad
             {
                 Toggle tgl = toggleMap.get(btn);
                 boolean val = tgl.query(getRawValue(btn));
-                valueMap.put(btn, val);
+                toggleMap.put(btn, tgl);
+                valueMap.put(btn, tgl.value);
             }
         }
+    }
+
+    public void setType(Buttons btn, PressType type)
+    {
+        typeMap.put(btn, type);
+        valueMap.put(btn, false);
+        toggleMap.put(btn, new Toggle());
+    }
+
+    public void setTelemetry(Telemetry telemetry)
+    {
+        for(Buttons btn: Buttons.values())
+        {
+            telemetry.addData(btn.name(), getValue(btn));
+        }
+        for(Axes axe: Axes.values())
+        {
+            telemetry.addData(axe.name(), getValue(axe));
+        }
+        telemetry.update();
     }
 }
