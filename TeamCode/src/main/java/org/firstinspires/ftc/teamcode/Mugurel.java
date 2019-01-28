@@ -7,9 +7,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import javax.lang.model.type.NullType;
+
 public class Mugurel
 {
-    public enum Face { FRONT, BACK };
+    public Telemetry telemetry;
 
     public class Runner
     {
@@ -34,6 +38,22 @@ public class Mugurel
                 }
             }
 
+            public void speed(double spd)
+            {
+                spd = Math.abs(spd);
+
+                if(spd > 1.0)   spd = 1.0;
+                double mx = Math.max( Math.max(Math.abs(lf), Math.abs(lb)), Math.max(Math.abs(rf), Math.abs(rb)) );
+                if(spd <= 1.0 && mx < spd)
+                {
+                    double coef = spd / mx;
+                    lf *= coef;
+                    lb *= coef;
+                    rf *= coef;
+                    rb *= coef;
+                }
+            }
+
             public void rap(double r)
             {
                 lf *= r; lb *= r; rf *= r; rb *= r;
@@ -41,12 +61,12 @@ public class Mugurel
         }
         public DcMotor leftFront, rightFront, leftBack, rightBack;
         public double faceAngle;
-        public final double wheelAngle = Math.PI / 4.0;
+        public final double wheelAngle = Math.PI / 4.0 - Math.PI / 2.0;
 
         Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb)
         {
             leftFront = lf; rightFront = rf; leftBack = lb; rightBack = rb;
-            faceAngle = -Math.PI / 2.0;
+            faceAngle = 0;
             leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
             leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
             rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -89,7 +109,7 @@ public class Mugurel
         public MotorPowers angleDriveFromAxes(double x, double y, double r)
         {
             double angle = Math.atan2(y, x);
-            if(angle < 0)   angle += 2 * Math.PI;
+            while(angle < 0)   angle += 2 * Math.PI;
             double speed = Math.sqrt(x * x + y * y);
             return angleDrive(speed, angle, r);
         }
@@ -105,7 +125,9 @@ public class Mugurel
             double rb = speed * Math.sin(angle + wheelAngle) + rot;
 
             MotorPowers mpw = new MotorPowers(lf, lb, rf, rb);
+
             mpw.normalize();
+            mpw.speed(speed);
             return mpw;
         }
 
@@ -129,6 +151,8 @@ public class Mugurel
                 hm.get(DcMotor.class, Config.rightBack)
         );
     }
+
+    public void initTelemetry(Telemetry _t) { telemetry = _t; }
 
     public void afterStartInit()
     {

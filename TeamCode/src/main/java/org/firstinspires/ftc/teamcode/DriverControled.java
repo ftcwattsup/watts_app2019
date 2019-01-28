@@ -57,6 +57,7 @@ public class DriverControled extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
+    private MyGamepad gaju, duta;
 
     @Override
     public void runOpMode() {
@@ -64,19 +65,22 @@ public class DriverControled extends LinearOpMode {
         telemetry.update();
 
         robot = new Mugurel(hardwareMap);
+        robot.initTelemetry(telemetry);
+        gaju = new MyGamepad(gamepad1);
+        duta = new MyGamepad(gamepad2);
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
         robot.afterStartInit();
 
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            robot.runner.move(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
-
-            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("X", gaju.getValue(MyGamepad.Axes.LEFT_X));
+            telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
+            telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
+
+            robot.runner.move(gaju.getValue(MyGamepad.Axes.LEFT_X), gaju.getValue(MyGamepad.Axes.LEFT_Y), gaju.getValue(MyGamepad.Axes.RIGHT_Y));
+
             telemetry.update();
         }
     }

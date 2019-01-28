@@ -82,6 +82,7 @@ public class GamepadTest extends LinearOpMode {
             gaju.update();
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             gaju.setTelemetry(telemetry);
+            telemetry.update();
         }
     }
 }

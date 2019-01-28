@@ -167,6 +167,5 @@ public class MyGamepad
         {
             telemetry.addData(axe.name(), getValue(axe));
         }
-        telemetry.update();
     }
 }
