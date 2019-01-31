@@ -61,16 +61,16 @@ public class Mugurel
         }
         public DcMotor leftFront, rightFront, leftBack, rightBack;
         public double faceAngle;
-        public final double wheelAngle = Math.PI / 4.0 - Math.PI / 2.0;
+        public final double wheelAngle = Math.PI / 4.0;
 
         Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb)
         {
             leftFront = lf; rightFront = rf; leftBack = lb; rightBack = rb;
             faceAngle = 0;
-            leftFront.setDirection(DcMotorSimple.Direction.FORWARD);
-            leftBack.setDirection(DcMotorSimple.Direction.FORWARD);
-            rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
             setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
@@ -109,20 +109,23 @@ public class Mugurel
         public MotorPowers angleDriveFromAxes(double x, double y, double r)
         {
             double angle = Math.atan2(y, x);
+            telemetry.addData("Angle", angle);
             while(angle < 0)   angle += 2 * Math.PI;
             double speed = Math.sqrt(x * x + y * y);
+            telemetry.addData("Speed", speed);
             return angleDrive(speed, angle, r);
         }
 
         public MotorPowers angleDrive(double speed, double angle, double rot)
         {
             angle += faceAngle;
-            if(angle >= 2 * Math.PI) angle -= 2 * Math.PI;
+            angle += wheelAngle;
 
-            double lf = speed * Math.sin(angle + wheelAngle) - rot;
-            double rf = speed * Math.cos(angle + wheelAngle) + rot;
-            double lb = speed * Math.cos(angle + wheelAngle) - rot;
-            double rb = speed * Math.sin(angle + wheelAngle) + rot;
+            double lf = speed * Math.sin(-angle) - rot;
+            double rf = speed * Math.cos(-angle) + rot;
+            double lb = speed * Math.cos(-angle) - rot;
+            double rb = speed * Math.sin(-angle) + rot;
+            lf = -lf; rf = -rf; lb = -lb; rb = -rb;
 
             MotorPowers mpw = new MotorPowers(lf, lb, rf, rb);
 
@@ -137,7 +140,36 @@ public class Mugurel
             MotorPowers pw = angleDriveFromAxes(x, y, r);
             pw.rap(rap);
             setPower(pw);
+
+            telemetry.addData("Face", faceAngle);
+
+            telemetry.addData("Dir lf", leftFront.getDirection().toString());
+            telemetry.addData("Dir rf", rightFront.getDirection().toString());
+            telemetry.addData("Dir lb", leftBack.getDirection().toString());
+            telemetry.addData("Dir rb", rightBack.getDirection().toString());
+
+            telemetry.addData("Front Left", leftFront.getPower());
+            telemetry.addData("Front Right", rightFront.getPower());
+            telemetry.addData("Back Left", leftBack.getPower());
+            telemetry.addData("Back Right", rightBack. getPower());
         }
+
+        public void moveTank(double x, double y, double r)
+        {
+            double left = y + r, right = y - r;
+            if( Math.abs(r) < 0.001 )   setPower(left, left ,right, right);
+            else if( Math.abs(y) < 0.001 ) setPower(left, left, right, right);
+            else
+            {
+                if(left < -1.0) left = -1.0;
+                if(left > 1.0)  left = 1.0;
+                if(right < -1.0)    right = -1.0;
+                if(right > 1.0) right = 1.0;
+                setPower(left, left, right, right);
+            }
+        }
+
+        public void setFace(double angle) { faceAngle = angle; }
     }
 
     public Runner runner;

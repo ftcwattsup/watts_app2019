@@ -29,12 +29,9 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -50,9 +47,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Controled", group="Linear Opmode")
+@TeleOp(name="Driver Controled Tank", group="Linear Opmode")
 //@Disabled
-public class DriverControled extends LinearOpMode {
+public class DriverControledTank extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -64,39 +61,22 @@ public class DriverControled extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        gaju = new MyGamepad(gamepad1);
-        duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
+        gaju = new MyGamepad(gamepad1);
+        duta = new MyGamepad(gamepad2);
 
         waitForStart();
         runtime.reset();
         robot.afterStartInit();
 
         while (opModeIsActive()) {
-
-            gaju.update();
-            duta.update();
-
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("X", gaju.getValue(MyGamepad.Axes.LEFT_X));
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            if(gaju.getValue(MyGamepad.Buttons.DPAD_UP) == true)    robot.runner.setFace(0);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN) == true)    robot.runner.setFace(Math.PI);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_LEFT) == true)    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT) == true)    robot.runner.setFace(-Math.PI / 2.0);
-
-            double gajux = 0.0;
-            double gajuy = gaju.getValue(MyGamepad.Axes.LEFT_Y);
-            double gajur = gaju.getValue(MyGamepad.Axes.RIGHT_X);
-            if(gaju.getValue(MyGamepad.Buttons.X))  gajux += -1.0;
-            if(gaju.getValue(MyGamepad.Buttons.B))  gajux += 1.0;
-
-            if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    robot.runner.move(gajux, gajuy, gajur, 0.5);
-            else if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER)  > 0.3) robot.runner.move(gajux, gajuy, gajur, 0.3);
-            else robot.runner.move(gajux, gajuy, gajur);
+            robot.runner.moveTank(gaju.getValue(MyGamepad.Axes.LEFT_X), gaju.getValue(MyGamepad.Axes.LEFT_Y), gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
             telemetry.update();
         }
