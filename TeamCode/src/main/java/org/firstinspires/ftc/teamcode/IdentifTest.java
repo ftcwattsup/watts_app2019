@@ -52,7 +52,7 @@ import java.util.List;
  * is explained below.
  */
 @TeleOp(name = "Mineral Identification", group = "Concept")
-//@Disabled
+@Disabled
 public class IdentifTest extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -114,12 +114,17 @@ public class IdentifTest extends LinearOpMode {
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
                       telemetry.addData("# Object Detected", updatedRecognitions.size());
-                      if (updatedRecognitions.size() == 3) {
                         int goldMineralX = -1;
                         int silverMineral1X = -1;
                         int silverMineral2X = -1;
                         for (Recognition recognition : updatedRecognitions) {
-                          if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                          if (recognition.getLabel().equals(LABEL_GOLD_MINERAL))
+                          {
+                              telemetry.addData("Left", recognition.getLeft());
+                              telemetry.addData("Right", recognition.getRight());
+                          }
+
+                          /*{
                             goldMineralX = (int) recognition.getLeft();
                           } else if (silverMineral1X == -1) {
                             silverMineral1X = (int) recognition.getLeft();
@@ -134,11 +139,10 @@ public class IdentifTest extends LinearOpMode {
                             telemetry.addData("Gold Mineral Position", "Right");
                           } else {
                             telemetry.addData("Gold Mineral Position", "Center");
-                          }
+                          }*/
                         }
+                          telemetry.update();
                       }
-                      telemetry.update();
-                    }
                 }
             }
         }

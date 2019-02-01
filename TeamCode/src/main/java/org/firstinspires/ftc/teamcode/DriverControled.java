@@ -73,6 +73,10 @@ public class DriverControled extends LinearOpMode {
         runtime.reset();
         robot.afterStartInit();
 
+        double maturiquePower = 1.0;
+        boolean xPress = false, bPress = false;
+        int matState = 0;
+
         while (opModeIsActive()) {
 
             gaju.update();
@@ -97,6 +101,36 @@ public class DriverControled extends LinearOpMode {
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    robot.runner.move(gajux, gajuy, gajur, 0.5);
             else if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER)  > 0.3) robot.runner.move(gajux, gajuy, gajur, 0.3);
             else robot.runner.move(gajux, gajuy, gajur);
+
+            robot.collector.rotate(duta.getValue(MyGamepad.Axes.LEFT_Y) * 0.7);
+            double ext = 0.0;
+            if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
+            if(duta.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   ext += 1.0;
+            robot.collector.extend(ext * 0.7);
+            robot.lift.move(duta.getValue(MyGamepad.Axes.RIGHT_Y));
+
+            if(duta.getRawValue(MyGamepad.Buttons.X))
+            {
+                if(!xPress)
+                {
+                    if(matState == 1)   matState = 0;
+                    else    matState = 1;
+                    xPress = true;
+                }
+            }
+            else xPress = false;
+            if(duta.getRawValue(MyGamepad.Buttons.B))
+            {
+                if(!bPress)
+                {
+                    if(matState == -1)   matState = 0;
+                    else    matState = -1;
+                    bPress = true;
+                }
+            }
+            else bPress = false;
+            robot.collector.collect(matState);
+
 
             telemetry.update();
         }

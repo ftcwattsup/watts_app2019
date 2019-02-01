@@ -32,7 +32,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 
 /**
@@ -48,36 +51,45 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Controled Tank", group="Linear Opmode")
+@TeleOp(name="Servo Test", group="Linear Opmode")
 @Disabled
-public class DriverControledTank extends LinearOpMode {
+public class ServoTest extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private Mugurel robot;
-    private MyGamepad gaju, duta;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        robot = new Mugurel(hardwareMap);
-        robot.initTelemetry(telemetry);
-        gaju = new MyGamepad(gamepad1);
-        duta = new MyGamepad(gamepad2);
+        CRServo mat = hardwareMap.get(CRServo.class, "mat");
+        mat.getController().pwmDisable();
 
         waitForStart();
         runtime.reset();
-        robot.afterStartInit();
 
+        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("X", gaju.getValue(MyGamepad.Axes.LEFT_X));
-            telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
-            telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            robot.runner.moveTank(gaju.getValue(MyGamepad.Axes.LEFT_X), gaju.getValue(MyGamepad.Axes.LEFT_Y), gaju.getValue(MyGamepad.Axes.RIGHT_X));
+            int direction = 0;
+            if(gamepad1.a)  direction = 1;
+            if(gamepad1.b)  direction = -1;
+            if(direction == 0)
+            {
+                mat.getController().pwmDisable();
+            }
+            else if(direction == 1)
+            {
+                mat.getController().pwmEnable();
+                mat.setPower(1.0);
+            }
+            else if(direction == -1)
+            {
+                mat.getController().pwmEnable();
+                mat.setPower(-1.0);
+            }
 
             telemetry.update();
         }

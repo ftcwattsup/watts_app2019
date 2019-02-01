@@ -8,4 +8,12 @@ public class Config
     public static final String rightFront = "rf";
     public static final String leftBack = "lb";
     public static final String rightBack = "rb";
+
+    public static final String rotLeft = "rotl";
+    public static final String rotRight = "rotr";
+    public static final String extend = "ext";
+    public static final String maturique = "mat";
+    public static final String lift = "lift";
+
+    public static final String downSensor = "ds";
 }

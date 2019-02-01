@@ -29,9 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -48,38 +47,36 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Controled Tank", group="Linear Opmode")
-@Disabled
-public class DriverControledTank extends LinearOpMode {
+@Autonomous(name="Autonomous 1", group="Linear Opmode")
+//@Disabled
+public class Autonomous1 extends LinearOpMode {
 
-    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
-    private MyGamepad gaju, duta;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
-        gaju = new MyGamepad(gamepad1);
-        duta = new MyGamepad(gamepad2);
+        robot.identifier.init();
+        telemetry.update();
 
         waitForStart();
         runtime.reset();
+
         robot.afterStartInit();
 
+        robot.identifier.start();
+        sleep(1000);
+        int where = robot.identifier.findGold();
+        telemetry.addData("Gold", where);
+        telemetry.update();
+        robot.identifier.stop();
+
         while (opModeIsActive()) {
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("X", gaju.getValue(MyGamepad.Axes.LEFT_X));
-            telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
-            telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
-
-            robot.runner.moveTank(gaju.getValue(MyGamepad.Axes.LEFT_X), gaju.getValue(MyGamepad.Axes.LEFT_Y), gaju.getValue(MyGamepad.Axes.RIGHT_X));
-
-            telemetry.update();
+            ;
         }
     }
 }
