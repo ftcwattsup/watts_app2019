@@ -31,7 +31,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -60,7 +64,7 @@ public class Autonomous1 extends LinearOpMode {
 
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
-        robot.identifier.init();
+        //robot.identifier.init();
         telemetry.update();
 
         waitForStart();
@@ -68,15 +72,18 @@ public class Autonomous1 extends LinearOpMode {
 
         robot.afterStartInit();
 
-        robot.identifier.start();
+        /*robot.identifier.start();
         sleep(1000);
         int where = robot.identifier.findGold();
         telemetry.addData("Gold", where);
         telemetry.update();
-        robot.identifier.stop();
+        robot.identifier.stop();*/
+
 
         while (opModeIsActive()) {
-            ;
+            if(runtime.milliseconds() > 4300)   { robot.runner.move(0, 0, 0); robot.collector.rotate(0); }
+            else if(runtime.milliseconds() > 3500) { robot.collector.rotate(0.7); robot.runner.move(0,0, 0); }
+            else { robot.runner.move(0, 1, 0, 0.6); robot.collector.rotate(0); }
         }
     }
 }

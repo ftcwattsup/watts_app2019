@@ -163,6 +163,11 @@ public class Mugurel
             telemetry.addData("Front Right", rightFront.getPower());
             telemetry.addData("Back Left", leftBack.getPower());
             telemetry.addData("Back Right", rightBack. getPower());*/
+
+            telemetry.addData("Encoder lf", leftFront.getCurrentPosition());
+            telemetry.addData("Encoder rf", rightFront.getCurrentPosition());
+            telemetry.addData("Encoder lb", leftBack.getCurrentPosition());
+            telemetry.addData("Encoder rb", rightBack.getCurrentPosition());
         }
 
         public void moveTank(double x, double y, double r)
@@ -198,6 +203,8 @@ public class Mugurel
             rotLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rotRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rotLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rotRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         public void afterInitStart()
@@ -211,6 +218,9 @@ public class Mugurel
         {
             rotLeft.setPower(speed);
             rotRight.setPower(speed);
+
+            telemetry.addData("Zero left", rotLeft.getZeroPowerBehavior().toString());
+            telemetry.addData("Zero Right", rotRight.getZeroPowerBehavior().toString());
         }
 
         public void extend(double speed)
@@ -245,7 +255,7 @@ public class Mugurel
         Lifter(DcMotor _motor)
         {
             motor = _motor;
-            motor.setDirection(DcMotorSimple.Direction.FORWARD);
+            motor.setDirection(DcMotorSimple.Direction.REVERSE);
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
@@ -375,7 +385,7 @@ public class Mugurel
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
             parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-            parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+            //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
             parameters.loggingEnabled      = true;
             parameters.loggingTag          = "IMU";
             imu = hardwareMap.get(BNO055IMU.class, "imu");

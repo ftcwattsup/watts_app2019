@@ -73,6 +73,8 @@ public class DriverControled extends LinearOpMode {
         runtime.reset();
         robot.afterStartInit();
 
+        robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         double maturiquePower = 1.0;
         boolean xPress = false, bPress = false;
         int matState = 0;
@@ -92,21 +94,21 @@ public class DriverControled extends LinearOpMode {
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_LEFT) == true)    robot.runner.setFace(Math.PI / 2.0);
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT) == true)    robot.runner.setFace(-Math.PI / 2.0);
 
-            double gajux = 0.0;
+            double gajux = gaju.getValue(MyGamepad.Axes.LEFT_X);
             double gajuy = gaju.getValue(MyGamepad.Axes.LEFT_Y);
             double gajur = gaju.getValue(MyGamepad.Axes.RIGHT_X);
-            if(gaju.getValue(MyGamepad.Buttons.X))  gajux += -1.0;
-            if(gaju.getValue(MyGamepad.Buttons.B))  gajux += 1.0;
+            //if(gaju.getValue(MyGamepad.Buttons.X))  gajux += -1.0;
+            //if(gaju.getValue(MyGamepad.Buttons.B))  gajux += 1.0;
 
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    robot.runner.move(gajux, gajuy, gajur, 0.5);
             else if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER)  > 0.3) robot.runner.move(gajux, gajuy, gajur, 0.3);
             else robot.runner.move(gajux, gajuy, gajur);
 
-            robot.collector.rotate(duta.getValue(MyGamepad.Axes.LEFT_Y) * 0.7);
+            robot.collector.rotate(duta.getValue(MyGamepad.Axes.LEFT_Y) * 0.5);
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
             if(duta.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   ext += 1.0;
-            robot.collector.extend(ext * 0.7);
+            robot.collector.extend(ext * 0.6);
             robot.lift.move(duta.getValue(MyGamepad.Axes.RIGHT_Y));
 
             if(duta.getRawValue(MyGamepad.Buttons.X))
@@ -130,7 +132,6 @@ public class DriverControled extends LinearOpMode {
             }
             else bPress = false;
             robot.collector.collect(matState);
-
 
             telemetry.update();
         }
