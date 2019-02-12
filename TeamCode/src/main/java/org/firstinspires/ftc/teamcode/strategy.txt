@@ -1,0 +1,43 @@
+1. Get down from lander and unhook
+2. Kick the gold mineral
+3. Drop team marker
+4. Park on the crater
+
+Init:
+init servos and motors (! make sure hook servo doesn't move)
+init vuforia
+
+1:
+Move hook servo.
+Slow extend the slider, until the robot is on the floor. (Check if on floor with color/range sensor)
+Move a bit to the side. (Maybe a bit forward?)
+
+2.
+Use Tensorflow and Vuforia to get the gold mineral position.
+Move forward a specific distance. (Hope the encoders are accurate on mecanum!?)
+Move in front of the gold mineral.
+Push the gold mineral.
+Get back in front of the minerals.
+
+3.
+Move to the wall until a specific distance.
+Rotate 45 degrees (being paralell to the wall).
+Move to the depot.
+Drop the team marker.
+
+4.
+Move backwards until the crater is reached.
+
+
+Sensors needed:
+Gyro (in REV)
+Distance sensor pointing to the floor.
+Distance sensor pointing forward. (for depot)
+
+Q7hV9MKeYTXA
+
+1. Rotate to any angle low speed.
+2. Add speed variation to (1)
+3. Drive distance using encoders. Any angle, any distance, constante low speed.
+4. Add speed variation to (3)
+5. Integrate rotation and straight drive.

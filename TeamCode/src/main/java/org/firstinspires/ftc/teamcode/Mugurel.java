@@ -12,7 +12,11 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
@@ -25,6 +29,9 @@ public class Mugurel
 {
     public Telemetry telemetry;
     public HardwareMap hardwareMap;
+
+    public final double wheelDiameter = 100.0;
+    public final double wheelCircumference = wheelDiameter * Math.PI;
 
     public class Runner
     {
@@ -104,7 +111,7 @@ public class Mugurel
         /**
          * Move + Drive
          */
-        public MotorPowers basicDrive(double x, double y, double r)
+        /*public MotorPowers basicDrive(double x, double y, double r)
         {
             double pw[] = new double[4];
             pw[0] = x + y + r;
@@ -115,7 +122,7 @@ public class Mugurel
             MotorPowers mpw = new MotorPowers(pw[0], pw[2], pw[1], pw[3]);
             mpw.normalize();
             return mpw;
-        }
+        }*/
 
         public MotorPowers angleDriveFromAxes(double x, double y, double r)
         {
@@ -170,7 +177,15 @@ public class Mugurel
             telemetry.addData("Encoder rb", rightBack.getCurrentPosition());
         }
 
-        public void moveTank(double x, double y, double r)
+        public void angleMove(double speed, double angle, double rot) { angleMove(speed, angle, rot, 1.0); }
+        public void angleMove(double speed, double angle, double rot, double rap)
+        {
+            MotorPowers pw = angleDrive(speed, angle, rot);
+            pw.rap(rap);
+            setPower(pw);
+        }
+
+        /*public void moveTank(double x, double y, double r)
         {
             double left = y + r, right = y - r;
             if( Math.abs(r) < 0.001 )   setPower(left, left ,right, right);
@@ -183,9 +198,16 @@ public class Mugurel
                 if(right > 1.0) right = 1.0;
                 setPower(left, left, right, right);
             }
-        }
+        }*/
 
         public void setFace(double angle) { faceAngle = angle; }
+
+        public void reset(DcMotor.RunMode mode)
+        {
+            setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            setMode(mode);
+        }
+        public void reset() { reset(leftFront.getMode()); }
     }
 
     public class Collector
@@ -377,48 +399,84 @@ public class Mugurel
     public class Autonomous
     {
         public BNO055IMU imu;
-        public DistanceSensor distanceSensor;
-        public double goodAngle;
+        public double myAngle;
 
         Autonomous()
         {
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
             parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+            parameters.mode = BNO055IMU.SensorMode.IMU;
             //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-            parameters.loggingEnabled      = true;
-            parameters.loggingTag          = "IMU";
+            //parameters.loggingEnabled      = true;
+            //parameters.loggingTag          = "IMU";
             imu = hardwareMap.get(BNO055IMU.class, "imu");
             imu.initialize(parameters);
-            goodAngle = 0;
-            distanceSensor = hardwareMap.get(DistanceSensor.class, Config.downSensor);
+            myAngle = getHeading();
         }
 
-        public void setGoodAngle() { goodAngle = getHeading(); }
+        public double degToRad(double x) { return (x * Math.PI) / 180.0; }
+        public double radToDeg(double x) { return (x * 180.0) / Math.PI; }
 
-        public double getHeading()
+        public Orientation getGyro() { return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES); }
+
+        public double getHeading() { return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle; }
+        public double getHeadingRadians() { return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle; }
+
+        public double getAngleDistance(double start, double fin)
         {
-            return imu.getAngularOrientation().firstAngle;
+            start = AngleUnit.normalizeDegrees(start);
+            fin = AngleUnit.normalizeDegrees(fin);
+            double dist = fin - start;
+            dist = AngleUnit.normalizeDegrees(dist);
+            return dist;
         }
 
-        public void rotateToAngle(double angle)
+        public void rotate(double degrees)
         {
+            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
+            double accepted = 0.5;
+            double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
+            double power = 0.4;
+            while( true )
+            {
+                double distance = getAngleDistance(getHeading(), degrees);
+                if(distance < accepted) break;
 
+                if(distance < 0)
+                    runner.angleMove(0, 0, -power);
+                else
+                    runner.angleMove(0, 0, power);
+            }
+            runner.move(0, 0, 0);
         }
 
-        public void rotate(double angle)
+        public void rotateP(double degrees)
         {
+            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
+            double accepted = 0.5;
+            double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
+            double lastPower = 0.0;
+            double maxDifference = 0.1;
+            double angleDecrease = 10.0;
+            while( true )
+            {
+                double distance = getAngleDistance(getHeading(), needAngle);
+                if(distance < accepted) break;
 
-        }
+                double power = 0.0;
 
-        public void moveDistance(double angle, double distance)
-        {
-            ;
-        }
+                if(Math.abs(distance) < angleDecrease)
+                    power = Math.abs(distance) / angleDecrease;
+                else
+                    power = 1.0;
 
-        public double getDownDistance()
-        {
-            return distanceSensor.getDistance(DistanceUnit.MM);
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+
+                runner.angleMove(0, 0, power);
+            }
+            runner.move(0, 0, 0);
         }
     }
 
