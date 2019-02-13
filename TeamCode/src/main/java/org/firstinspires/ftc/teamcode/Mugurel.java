@@ -17,6 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
@@ -32,6 +34,7 @@ public class Mugurel
 
     public final double wheelDiameter = 100.0;
     public final double wheelCircumference = wheelDiameter * Math.PI;
+    public double ticksPerRevolution;
 
     public class Runner
     {
@@ -89,6 +92,7 @@ public class Mugurel
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
             rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
             rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
+            ticksPerRevolution = leftFront.getMotorType().getTicksPerRev();
             setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
@@ -107,6 +111,7 @@ public class Mugurel
             rightFront.setPower(rf);
             rightBack.setPower(rb);
         }
+        public void setPower(double pw) { setPower(pw, pw, pw, pw); }
 
         /**
          * Move + Drive
@@ -185,7 +190,7 @@ public class Mugurel
             setPower(pw);
         }
 
-        /*public void moveTank(double x, double y, double r)
+        public void moveTank(double x, double y, double r)
         {
             double left = y + r, right = y - r;
             if( Math.abs(r) < 0.001 )   setPower(left, left ,right, right);
@@ -198,7 +203,7 @@ public class Mugurel
                 if(right > 1.0) right = 1.0;
                 setPower(left, left, right, right);
             }
-        }*/
+        }
 
         public void setFace(double angle) { faceAngle = angle; }
 
@@ -208,6 +213,33 @@ public class Mugurel
             setMode(mode);
         }
         public void reset() { reset(leftFront.getMode()); }
+
+        public void setTargetPositions(int lf, int lb, int rf, int rb)
+        {
+            leftFront.setTargetPosition(lf);
+            leftBack.setTargetPosition(lb);
+            rightFront.setTargetPosition(rf);
+            rightBack.setTargetPosition(rb);
+        }
+
+        public boolean isBusy() { return leftFront.isBusy() || leftBack.isBusy() || rightFront.isBusy() || rightBack.isBusy(); }
+
+        public void showPositions()
+        {
+            telemetry.addData("TicksPerRev", ticksPerRevolution);
+
+            telemetry.addData("lf current", leftFront.getCurrentPosition());
+            telemetry.addData("rf current", rightFront.getCurrentPosition());
+            telemetry.addData("lb current", leftBack.getCurrentPosition());
+            telemetry.addData("rb current", rightBack.getCurrentPosition());
+
+            telemetry.addData("lf target", leftFront.getTargetPosition());
+            telemetry.addData("rf target", rightFront.getTargetPosition());
+            telemetry.addData("lb target", leftBack.getTargetPosition());
+            telemetry.addData("rb target", rightBack.getTargetPosition());
+
+            telemetry.update();
+        }
     }
 
     public class Collector
@@ -401,7 +433,9 @@ public class Mugurel
         public BNO055IMU imu;
         public double myAngle;
 
-        Autonomous()
+        Autonomous() { ; }
+
+        public void init()
         {
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
@@ -413,6 +447,25 @@ public class Mugurel
             imu = hardwareMap.get(BNO055IMU.class, "imu");
             imu.initialize(parameters);
             myAngle = getHeading();
+
+            while(!imu.isGyroCalibrated())
+            {
+                telemetry.addData("Gyro", "Calibrating...");
+                telemetry.update();
+            }
+            telemetry.addData("Gyro", "Calibrated");
+            telemetry.update();
+        }
+
+        public void startTracking() { imu.startAccelerationIntegration(new Position(), new Velocity(), 200); }
+        public void stopTracking() { imu.stopAccelerationIntegration(); }
+        public void showPosition()
+        {
+            Position p = imu.getPosition();
+            telemetry.addData("Pos x", p.x);
+            telemetry.addData("Pos y", p.y);
+            telemetry.addData("Pos z", p.z);
+            telemetry.addData("Unit", p.unit.toString());
         }
 
         public double degToRad(double x) { return (x * Math.PI) / 180.0; }
@@ -432,23 +485,9 @@ public class Mugurel
             return dist;
         }
 
-        public void rotate(double degrees)
+        public double getPower(double pw)
         {
-            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
-            double accepted = 0.5;
-            double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
-            double power = 0.4;
-            while( true )
-            {
-                double distance = getAngleDistance(getHeading(), degrees);
-                if(distance < accepted) break;
-
-                if(distance < 0)
-                    runner.angleMove(0, 0, -power);
-                else
-                    runner.angleMove(0, 0, power);
-            }
-            runner.move(0, 0, 0);
+            return pw;
         }
 
         public void rotateP(double degrees)
@@ -458,11 +497,16 @@ public class Mugurel
             double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
             double lastPower = 0.0;
             double maxDifference = 0.1;
-            double angleDecrease = 10.0;
+            double angleDecrease = 45.0;
             while( true )
             {
-                double distance = getAngleDistance(getHeading(), needAngle);
-                if(distance < accepted) break;
+                double myAngle = getHeading();
+                telemetry.addData("Heading", myAngle);
+                telemetry.addData("Power", lastPower);
+                double distance = getAngleDistance(myAngle, needAngle);
+                telemetry.addData("Distance", distance);
+                telemetry.update();
+                if(Math.abs(distance) < accepted) break;
 
                 double power = 0.0;
 
@@ -473,10 +517,45 @@ public class Mugurel
 
                 power = Math.min(power, lastPower + maxDifference);
                 power = Math.max(power, lastPower - maxDifference);
+                lastPower = power;
+                power = - power;
+                if(distance < 0)    power = -power;
+                power = getPower(power);
 
                 runner.angleMove(0, 0, power);
             }
             runner.move(0, 0, 0);
+        }
+
+        public int distanceToTicks(double dist)
+        {
+            double ans = (dist * ticksPerRevolution) / wheelCircumference;
+            return (int)ans;
+        }
+
+        public void move(double distance, double angle)
+        {
+            double dx = distance * Math.cos(angle + Math.PI / 2);
+            double dy = distance * Math.sin(angle + Math.PI / 2);
+
+            telemetry.addData("dx", dx);
+            telemetry.addData("dy", dy);
+            telemetry.update();
+
+            double power = 0.3;
+
+            int lf = distanceToTicks(dy) + distanceToTicks(dx);
+            int rf = distanceToTicks(dy) - distanceToTicks(dx);
+
+            runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
+            runner.setTargetPositions(lf, rf, rf, lf);
+
+            while( runner.isBusy() )
+            {
+                runner.setPower(power);
+                runner.showPositions();
+            }
+            runner.setPower(0);
         }
     }
 
@@ -502,8 +581,8 @@ public class Mugurel
                 hm.get(CRServo.class, Config.maturique)
         );
         lift = new Lifter( hm.get(DcMotor.class, Config.lift) );
-        //identifier = new MineralIndetifier();
-        //autonomous = new Autonomous();
+        identifier = new MineralIdentifier();
+        autonomous = new Autonomous();
     }
 
     public void initTelemetry(Telemetry _t) { telemetry = _t; }

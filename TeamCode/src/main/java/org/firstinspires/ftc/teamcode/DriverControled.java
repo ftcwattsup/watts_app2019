@@ -69,11 +69,14 @@ public class DriverControled extends LinearOpMode {
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
 
+        robot.autonomous.init();
+
         waitForStart();
         runtime.reset();
         robot.afterStartInit();
+        robot.autonomous.startTracking();
 
-        robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         double maturiquePower = 1.0;
         boolean xPress = false, bPress = false;
@@ -133,7 +136,10 @@ public class DriverControled extends LinearOpMode {
             else bPress = false;
             robot.collector.collect(matState);
 
+            robot.autonomous.showPosition();
+
             telemetry.update();
         }
+        robot.autonomous.stopTracking();
     }
 }

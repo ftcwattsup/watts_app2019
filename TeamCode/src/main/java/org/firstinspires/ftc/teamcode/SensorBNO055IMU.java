@@ -68,6 +68,9 @@ public class SensorBNO055IMU extends LinearOpMode
     // State used for updating telemetry
     Orientation angles;
     Acceleration gravity;
+    Acceleration acc;
+    Position pos;
+    Velocity vel;
 
     //----------------------------------------------------------------------------------------------
     // Main logic
@@ -85,7 +88,7 @@ public class SensorBNO055IMU extends LinearOpMode
         parameters.calibrationDataFile = "IMUCalibration.json"; // see the calibration sample opmode
         parameters.loggingEnabled      = true;
         parameters.loggingTag          = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        //parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
@@ -123,6 +126,9 @@ public class SensorBNO055IMU extends LinearOpMode
                 // three times the necessary expense.
                 angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
                 gravity  = imu.getGravity();
+                acc = imu.getAcceleration();
+                vel = imu.getVelocity();
+                pos = imu.getPosition();
                 }
             });
 
@@ -167,6 +173,36 @@ public class SensorBNO055IMU extends LinearOpMode
                             Math.sqrt(gravity.xAccel*gravity.xAccel
                                     + gravity.yAccel*gravity.yAccel
                                     + gravity.zAccel*gravity.zAccel));
+                    }
+                });
+
+        telemetry.addLine()
+                .addData("acc", new Func<String>()
+                {
+                    @Override public String value() {
+                        return String.format(Locale.getDefault(), "%.3f", acc.xAccel) + " " +
+                                String.format(Locale.getDefault(), "%.3f", acc.yAccel) + " " +
+                                String.format(Locale.getDefault(), "%.3f", acc.zAccel);
+                    }
+                });
+
+        telemetry.addLine()
+                .addData("vel", new Func<String>()
+                {
+                    @Override public String value() {
+                        return String.format(Locale.getDefault(), "%.3f", vel.xVeloc) + " " +
+                                String.format(Locale.getDefault(), "%.3f", vel.yVeloc) + " " +
+                                String.format(Locale.getDefault(), "%.3f", vel.zVeloc);
+                    }
+                });
+
+        telemetry.addLine()
+                .addData("pos", new Func<String>()
+                {
+                    @Override public String value() {
+                        return String.format(Locale.getDefault(), "%.3f", pos.x) + " " +
+                                String.format(Locale.getDefault(), "%.3f", pos.y) + " " +
+                                String.format(Locale.getDefault(), "%.3f", pos.z);
                     }
                 });
     }

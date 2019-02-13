@@ -66,6 +66,7 @@ public class Autonomous1 extends LinearOpMode {
         robot.initTelemetry(telemetry);
         //robot.identifier.init();
         telemetry.update();
+        robot.autonomous.init();
 
         waitForStart();
         runtime.reset();
@@ -79,11 +80,18 @@ public class Autonomous1 extends LinearOpMode {
         telemetry.update();
         robot.identifier.stop();*/
 
+        robot.autonomous.move(3141.6, 0);
 
-        while (opModeIsActive()) {
+        while( opModeIsActive() )
+        {
+            ;
+        }
+
+
+        /*while (opModeIsActive()) {
             if(runtime.milliseconds() > 4300)   { robot.runner.move(0, 0, 0); robot.collector.rotate(0); }
             else if(runtime.milliseconds() > 3500) { robot.collector.rotate(0.7); robot.runner.move(0,0, 0); }
             else { robot.runner.move(0, 1, 0, 0.6); robot.collector.rotate(0); }
-        }
+        }*/
     }
 }
