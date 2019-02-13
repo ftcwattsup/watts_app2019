@@ -73,10 +73,8 @@ public class DriverControled extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-        robot.afterStartInit();
-        robot.autonomous.startTracking();
 
-        robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         double maturiquePower = 1.0;
         boolean xPress = false, bPress = false;
@@ -140,6 +138,5 @@ public class DriverControled extends LinearOpMode {
 
             telemetry.update();
         }
-        robot.autonomous.stopTracking();
     }
 }

@@ -213,6 +213,7 @@ public class Mugurel
             setMode(mode);
         }
         public void reset() { reset(leftFront.getMode()); }
+        public void stop() { setPower(0); setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); }
 
         public void setTargetPositions(int lf, int lb, int rf, int rb)
         {
@@ -220,6 +221,16 @@ public class Mugurel
             leftBack.setTargetPosition(lb);
             rightFront.setTargetPosition(rf);
             rightBack.setTargetPosition(rb);
+        }
+
+        public int getTicksDistance()
+        {
+            int sum = 0;
+            sum += Math.abs(leftFront.getCurrentPosition() - leftFront.getTargetPosition());
+            sum += Math.abs(leftBack.getCurrentPosition() - leftBack.getTargetPosition());
+            sum += Math.abs(rightFront.getCurrentPosition() - rightFront.getTargetPosition());
+            sum += Math.abs(rightBack.getCurrentPosition() - rightBack.getTargetPosition());
+            return sum / 4;
         }
 
         public boolean isBusy() { return leftFront.isBusy() || leftBack.isBusy() || rightFront.isBusy() || rightBack.isBusy(); }
@@ -524,7 +535,7 @@ public class Mugurel
 
                 runner.angleMove(0, 0, power);
             }
-            runner.move(0, 0, 0);
+            runner.stop();
         }
 
         public int distanceToTicks(double dist)
@@ -542,20 +553,38 @@ public class Mugurel
             telemetry.addData("dy", dy);
             telemetry.update();
 
-            double power = 0.3;
-
             int lf = distanceToTicks(dy) + distanceToTicks(dx);
             int rf = distanceToTicks(dy) - distanceToTicks(dx);
 
             runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
             runner.setTargetPositions(lf, rf, rf, lf);
 
+            double lastPower = 0.0;
+            double maxDifference = 0.05;
+            int ticksDecrease = (int)(2.5 * ticksPerRevolution);
+
             while( runner.isBusy() )
             {
-                runner.setPower(power);
+                double power = 0.0;
+
+                int ticksDistance = runner.getTicksDistance();
+
+                if(ticksDistance < ticksDecrease)
+                    power = (double)ticksDistance / (double)ticksDecrease;
+                else
+                    power = 1.0;
+
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+                lastPower = power;
+                power = Math.max(power, 0.05);
+
+                Runner.MotorPowers pw = runner.angleDrive(power, angle, 0);
+                runner.setPower(pw);
+
                 runner.showPositions();
             }
-            runner.setPower(0);
+            runner.stop();
         }
     }
 

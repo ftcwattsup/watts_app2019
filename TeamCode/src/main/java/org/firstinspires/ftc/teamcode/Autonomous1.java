@@ -80,11 +80,22 @@ public class Autonomous1 extends LinearOpMode {
         telemetry.update();
         robot.identifier.stop();*/
 
-        robot.autonomous.move(3141.6, 0);
-
         while( opModeIsActive() )
         {
-            ;
+            if(gamepad1.dpad_up)
+                robot.autonomous.move(500, 0);
+            else if(gamepad1.dpad_down)
+                robot.autonomous.move(500, Math.PI);
+            else if(gamepad1.dpad_right)
+                robot.autonomous.move(500, -Math.PI / 2);
+            else if(gamepad1.dpad_left)
+                robot.autonomous.move(500, Math.PI / 2);
+            else if(gamepad1.x)
+                robot.autonomous.move(200, Math.PI / 2);
+            else if(gamepad1.b)
+                robot.autonomous.move(200, -Math.PI / 2);
+            else if(gamepad1.a)
+                robot.autonomous.rotateP(90);
         }
 
 
