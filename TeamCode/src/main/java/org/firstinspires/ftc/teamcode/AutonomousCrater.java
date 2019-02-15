@@ -31,11 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -51,9 +47,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous 1", group="Linear Opmode")
+@Autonomous(name="Autonomous Crater", group="Linear Opmode")
 //@Disabled
-public class Autonomous1 extends LinearOpMode {
+public class AutonomousCrater extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -63,41 +59,45 @@ public class Autonomous1 extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
 
         robot = new Mugurel(hardwareMap);
-        robot.initTelemetry(telemetry);
         robot.setOpmode(this);
+        robot.initTelemetry(telemetry);
         //robot.identifier.init();
-        telemetry.update();
         robot.autonomous.init();
+        telemetry.update();
 
         waitForStart();
         runtime.reset();
 
         robot.afterStartInit();
 
-        /*robot.identifier.start();
+        int mineral = 1;
+        //mineral = robot.identifier.findGold();
+
+        robot.autonomous.move(150, Math.PI);
+        robot.autonomous.rotateP(-90);
+        robot.autonomous.move(300, 0);
+
+        if(mineral == 0)    /// Left
+            robot.autonomous.move(550, Math.PI / 2);
+        else if(mineral == 1)   /// Middle
+            robot.autonomous.move(100, Math.PI / 2);
+        else if(mineral == 2)   /// Right
+            robot.autonomous.move(300, -Math.PI / 2);
+
+        robot.autonomous.move(300, 0);
+        robot.autonomous.move(300, Math.PI);
+
+        robot.autonomous.rotateP(90);
+
+        robot.autonomous.moveUntilDistance(450, 0);
+        robot.autonomous.rotateP(45);
+        sleep(400);
+        robot.autonomous.moveUntilDistance(500, 0);
+
         sleep(1000);
-        int where = robot.identifier.findGold();
-        telemetry.addData("Gold", where);
-        telemetry.update();
-        robot.identifier.stop();*/
 
-        while( opModeIsActive() )
-        {
-            if(gamepad1.dpad_up)
-                robot.autonomous.move(2000, 0);
-            else if(gamepad1.dpad_down)
-                robot.autonomous.move(2000, Math.PI);
-            else if(gamepad1.dpad_right)
-                robot.autonomous.move(1000, -Math.PI / 2);
-            else if(gamepad1.dpad_left)
-                robot.autonomous.move(1000, Math.PI / 2);
-        }
+        robot.autonomous.move(1450, Math.PI);
 
-
-        /*while (opModeIsActive()) {
-            if(runtime.milliseconds() > 4300)   { robot.runner.move(0, 0, 0); robot.collector.rotate(0); }
-            else if(runtime.milliseconds() > 3500) { robot.collector.rotate(0.7); robot.runner.move(0,0, 0); }
-            else { robot.runner.move(0, 1, 0, 0.6); robot.collector.rotate(0); }
-        }*/
+        while(opModeIsActive()) { ; }
     }
 }

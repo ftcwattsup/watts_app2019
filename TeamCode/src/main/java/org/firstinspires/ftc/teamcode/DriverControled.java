@@ -33,8 +33,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -67,6 +70,9 @@ public class DriverControled extends LinearOpMode {
         gaju = new MyGamepad(gamepad1);
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
+
+        DistanceSensor ds = hardwareMap.get(DistanceSensor.class, Config.frontSensor);
+
         robot.initTelemetry(telemetry);
 
         robot.autonomous.init();
@@ -74,6 +80,7 @@ public class DriverControled extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         double maturiquePower = 1.0;
@@ -134,8 +141,7 @@ public class DriverControled extends LinearOpMode {
             else bPress = false;
             robot.collector.collect(matState);
 
-            robot.autonomous.showPosition();
-
+            telemetry.addData("Front Distance", ds.getDistance(DistanceUnit.MM));
             telemetry.update();
         }
     }

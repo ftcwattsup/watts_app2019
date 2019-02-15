@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.text.style.LineHeightSpan;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -31,6 +32,7 @@ public class Mugurel
 {
     public Telemetry telemetry;
     public HardwareMap hardwareMap;
+    public LinearOpMode opmode;
 
     public final double wheelDiameter = 100.0;
     public final double wheelCircumference = wheelDiameter * Math.PI;
@@ -233,7 +235,15 @@ public class Mugurel
             return sum / 4;
         }
 
-        public boolean isBusy() { return leftFront.isBusy() || leftBack.isBusy() || rightFront.isBusy() || rightBack.isBusy(); }
+        public boolean isBusy()
+        {
+            int cnt = 0;
+            if(leftFront.isBusy())  cnt++;
+            if(leftBack.isBusy())   cnt++;
+            if(rightFront.isBusy()) cnt++;
+            if(rightBack.isBusy())  cnt++;
+            return (cnt > 2);
+        }
 
         public void showPositions()
         {
@@ -345,6 +355,7 @@ public class Mugurel
         public TFObjectDetector tfod;
         public double cameraX = 1280;
         public double middleX = cameraX / 2.0;
+        public int last = -1;
 
         MineralIdentifier() { ; }
 
@@ -394,7 +405,7 @@ public class Mugurel
              * 2 = right
              */
             List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if(updatedRecognitions == null) return -1;
+            if(updatedRecognitions == null) return last;
             int goldCnt = 0;
             for(Recognition rec: updatedRecognitions)
                 if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
@@ -424,6 +435,7 @@ public class Mugurel
                 telemetry.addData(new Integer(i).toString(), where);
                 if(where != -1)
                     fq[where]++;
+                last = where;
             }
             telemetry.addData("fq 0", fq[0]);
             telemetry.addData("fq 1", fq[1]);
@@ -442,6 +454,7 @@ public class Mugurel
     public class Autonomous
     {
         public BNO055IMU imu;
+        public DistanceSensor front;
         public double myAngle;
 
         Autonomous() { ; }
@@ -458,6 +471,7 @@ public class Mugurel
             imu = hardwareMap.get(BNO055IMU.class, "imu");
             imu.initialize(parameters);
             myAngle = getHeading();
+            front = hardwareMap.get(DistanceSensor.class, Config.frontSensor);
 
             while(!imu.isGyroCalibrated())
             {
@@ -467,6 +481,8 @@ public class Mugurel
             telemetry.addData("Gyro", "Calibrated");
             telemetry.update();
         }
+
+        public double getFrontDistance() { return front.getDistance(DistanceUnit.MM); }
 
         public void startTracking() { imu.startAccelerationIntegration(new Position(), new Velocity(), 200); }
         public void stopTracking() { imu.stopAccelerationIntegration(); }
@@ -534,6 +550,12 @@ public class Mugurel
                 power = getPower(power);
 
                 runner.angleMove(0, 0, power);
+
+                if(!opmode.opModeIsActive())
+                {
+                    runner.stop();
+                    return;
+                }
             }
             runner.stop();
         }
@@ -544,7 +566,7 @@ public class Mugurel
             return (int)ans;
         }
 
-        public void move(double distance, double angle)
+        public void moveStraight(double distance, double angle)
         {
             double dx = distance * Math.cos(angle + Math.PI / 2);
             double dy = distance * Math.sin(angle + Math.PI / 2);
@@ -562,6 +584,69 @@ public class Mugurel
             double lastPower = 0.0;
             double maxDifference = 0.05;
             int ticksDecrease = (int)(2.5 * ticksPerRevolution);
+            double angleDecrease = 90.0;
+
+            double heading = getHeading();
+
+            while( runner.isBusy() )
+            {
+                double power = 0.0;
+
+                int ticksDistance = runner.getTicksDistance();
+
+                if(ticksDistance < ticksDecrease)
+                    power = (double)ticksDistance / (double)ticksDecrease;
+                else
+                    power = 1.0;
+
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+                lastPower = power;
+                power = Math.max(power, 0.05);
+
+                double angleDistance = getAngleDistance(getHeading(), heading);
+                double rot = 0.0;
+                if(Math.abs(angleDistance) > angleDecrease)
+                {
+                    if(angleDistance < 0)   rot = 1.0;
+                    else    rot = -1.0;
+                }
+                else
+                    rot = -(angleDistance / angleDecrease);
+
+                Runner.MotorPowers pw = runner.angleDrive(power, angle, rot);
+                runner.setPower(pw);
+
+                runner.showPositions();
+
+                if(!opmode.opModeIsActive())
+                {
+                    runner.stop();
+                    return;
+                }
+            }
+            runner.stop();
+        }
+
+        public void move(double distance, double angle)
+        {
+            angle += Math.PI / 2.0;
+            double dx = distance * Math.cos(angle);
+            double dy = distance * Math.sin(angle);
+
+            telemetry.addData("dx", dx);
+            telemetry.addData("dy", dy);
+            telemetry.update();
+
+            int lf = distanceToTicks(dy) + distanceToTicks(dx);
+            int rf = distanceToTicks(dy) - distanceToTicks(dx);
+
+            runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
+            runner.setTargetPositions(lf, rf, rf, lf);
+
+            double lastPower = 0.0;
+            double maxDifference = 0.05;
+            int ticksDecrease = (int)(1.25 * ticksPerRevolution);
 
             while( runner.isBusy() )
             {
@@ -583,6 +668,52 @@ public class Mugurel
                 runner.setPower(pw);
 
                 runner.showPositions();
+
+                if(!opmode.opModeIsActive())
+                {
+                    runner.stop();
+                    return;
+                }
+            }
+            runner.stop();
+        }
+
+        public void moveUntilDistance(double distance, double angle)
+        {
+            angle += Math.PI / 2.0;
+            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
+            double accepted = 5.0;
+            double lastPower = 0.0;
+            double maxDifference = 0.1;
+            double distanceDecrease = 500.0;
+            double maxPower = 0.85;
+            while( true )
+            {
+                double myDistance = getFrontDistance();
+                telemetry.addData("Distance", myDistance);
+                telemetry.addData("Power", lastPower);
+                double rem = myDistance - distance;
+                telemetry.addData("Remaining", rem);
+                telemetry.update();
+                if(rem < accepted) break;
+
+                double power = 0.0;
+                if(rem < distanceDecrease)
+                    power = rem / distanceDecrease;
+                else
+                    power = 1.0;
+
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+                lastPower = power;
+
+                runner.angleMove(power * maxPower, angle, 0);
+
+                if(!opmode.opModeIsActive())
+                {
+                    runner.stop();
+                    return;
+                }
             }
             runner.stop();
         }
@@ -615,6 +746,7 @@ public class Mugurel
     }
 
     public void initTelemetry(Telemetry _t) { telemetry = _t; }
+    public void setOpmode(LinearOpMode _opmode) { opmode = _opmode; }
 
     public void afterStartInit()
     {

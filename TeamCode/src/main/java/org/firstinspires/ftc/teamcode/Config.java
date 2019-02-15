@@ -15,5 +15,5 @@ public class Config
     public static final String maturique = "mat";
     public static final String lift = "lift";
 
-    public static final String downSensor = "ds";
+    public static final String frontSensor = "fata";
 }

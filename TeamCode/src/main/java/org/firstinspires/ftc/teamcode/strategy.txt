@@ -38,6 +38,9 @@ Q7hV9MKeYTXA
 
 //1. Rotate to any angle low speed.
 //2. Add speed variation to (1)
-3. Drive distance using encoders. Any angle, any distance, constante low speed.
+3. Drive distance using encoders. Any angle, any distance, constant low speed.
 4. Add speed variation to (3)
 5. Integrate rotation and straight drive.
+
+Forward sensor.
+Add maxTime.
