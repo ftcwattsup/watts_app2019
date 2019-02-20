@@ -36,11 +36,10 @@ Distance sensor pointing forward. (for depot)
 
 Q7hV9MKeYTXA
 
-//1. Rotate to any angle low speed.
-//2. Add speed variation to (1)
-3. Drive distance using encoders. Any angle, any distance, constant low speed.
-4. Add speed variation to (3)
-5. Integrate rotation and straight drive.
 
-Forward sensor.
+Forward sensor. XXXX
+Left/Right sensor.
 Add maxTime.
+Strafe left/right method.
+Reduce rotations.
+Calculate distances.

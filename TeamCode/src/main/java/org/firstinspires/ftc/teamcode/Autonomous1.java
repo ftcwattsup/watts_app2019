@@ -51,7 +51,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous 1", group="Linear Opmode")
+@Autonomous(name="Autonomous Test", group="Linear Opmode")
 //@Disabled
 public class Autonomous1 extends LinearOpMode {
 
@@ -66,38 +66,20 @@ public class Autonomous1 extends LinearOpMode {
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
         //robot.identifier.init();
-        telemetry.update();
         robot.autonomous.init();
+        telemetry.update();
 
         waitForStart();
         runtime.reset();
 
         robot.afterStartInit();
 
-        /*robot.identifier.start();
-        sleep(1000);
-        int where = robot.identifier.findGold();
-        telemetry.addData("Gold", where);
-        telemetry.update();
-        robot.identifier.stop();*/
-
-        while( opModeIsActive() )
+        while (opModeIsActive())
         {
-            if(gamepad1.dpad_up)
-                robot.autonomous.move(2000, 0);
-            else if(gamepad1.dpad_down)
-                robot.autonomous.move(2000, Math.PI);
-            else if(gamepad1.dpad_right)
-                robot.autonomous.move(1000, -Math.PI / 2);
-            else if(gamepad1.dpad_left)
-                robot.autonomous.move(1000, Math.PI / 2);
+            if(gamepad1.a)  robot.autonomous.move(400, Math.PI / 2);
+            if(gamepad1.b)  robot.autonomous.move(400, -Math.PI / 2);
+            if(gamepad1.x)  robot.autonomous.move(1000, Math.PI / 2);
+            if(gamepad1.y)  robot.autonomous.move(1000, -Math.PI / 2);
         }
-
-
-        /*while (opModeIsActive()) {
-            if(runtime.milliseconds() > 4300)   { robot.runner.move(0, 0, 0); robot.collector.rotate(0); }
-            else if(runtime.milliseconds() > 3500) { robot.collector.rotate(0.7); robot.runner.move(0,0, 0); }
-            else { robot.runner.move(0, 1, 0, 0.6); robot.collector.rotate(0); }
-        }*/
     }
 }

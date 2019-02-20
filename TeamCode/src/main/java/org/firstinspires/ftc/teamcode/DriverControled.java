@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -71,11 +72,9 @@ public class DriverControled extends LinearOpMode {
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
 
-        DistanceSensor ds = hardwareMap.get(DistanceSensor.class, Config.frontSensor);
+        ModernRoboticsI2cRangeSensor ds = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.frontSensor);
 
         robot.initTelemetry(telemetry);
-
-        robot.autonomous.init();
 
         waitForStart();
         runtime.reset();
@@ -141,7 +140,8 @@ public class DriverControled extends LinearOpMode {
             else bPress = false;
             robot.collector.collect(matState);
 
-            telemetry.addData("Front Distance", ds.getDistance(DistanceUnit.MM));
+            telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
+            telemetry.addData("Distance", ds.getDistance(DistanceUnit.MM));
             telemetry.update();
         }
     }

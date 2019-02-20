@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.text.style.LineHeightSpan;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorREVColorDistance;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -24,6 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.lang.model.type.NullType;
@@ -37,6 +40,8 @@ public class Mugurel
     public final double wheelDiameter = 100.0;
     public final double wheelCircumference = wheelDiameter * Math.PI;
     public double ticksPerRevolution;
+
+    public enum IdentifierType { ALL, LEFT_MID, MID_RIGHT };
 
     public class Runner
     {
@@ -94,6 +99,12 @@ public class Mugurel
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
             rightFront.setDirection(DcMotorSimple.Direction.FORWARD);
             rightBack.setDirection(DcMotorSimple.Direction.FORWARD);
+
+            leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
             ticksPerRevolution = leftFront.getMotorType().getTicksPerRev();
             setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
@@ -106,6 +117,7 @@ public class Mugurel
         public void setMode(DcMotor.RunMode mode) { leftFront.setMode(mode); leftBack.setMode(mode); rightFront.setMode(mode); rightBack.setMode(mode); }
 
         public void setPower(MotorPowers pw) { setPower(pw.lf, pw.lb, pw.rf, pw.rb); }
+        public void setPower(double pw) { setPower(pw, pw, pw, pw); }
         public void setPower(double lf, double lb, double rf, double rb)
         {
             leftFront.setPower(lf);
@@ -113,7 +125,6 @@ public class Mugurel
             rightFront.setPower(rf);
             rightBack.setPower(rb);
         }
-        public void setPower(double pw) { setPower(pw, pw, pw, pw); }
 
         /**
          * Move + Drive
@@ -242,7 +253,7 @@ public class Mugurel
             if(leftBack.isBusy())   cnt++;
             if(rightFront.isBusy()) cnt++;
             if(rightBack.isBusy())  cnt++;
-            return (cnt > 2);
+            return (cnt > 1);
         }
 
         public void showPositions()
@@ -326,11 +337,13 @@ public class Mugurel
     public class Lifter
     {
         public DcMotor motor;
+        public final static int tickInterval = 5500;
 
         Lifter(DcMotor _motor)
         {
             motor = _motor;
             motor.setDirection(DcMotorSimple.Direction.REVERSE);
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
@@ -342,6 +355,32 @@ public class Mugurel
         public void move(double speed)
         {
             motor.setPower(speed);
+        }
+
+        public void goToPosition(int ticks, double power)
+        {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setTargetPosition(ticks);
+
+            while(motor.isBusy())
+            {
+                if(!opmode.opModeIsActive())
+                {
+                    motor.setPower(0);
+                    return;
+                }
+
+                motor.setPower(power);
+            }
+            motor.setPower(0.0);
+
+            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+
+        public void land()
+        {
+            goToPosition(tickInterval, 0.7);
         }
     }
 
@@ -356,8 +395,11 @@ public class Mugurel
         public double cameraX = 1280;
         public double middleX = cameraX / 2.0;
         public int last = -1;
+        public IdentifierType type = IdentifierType.ALL;
 
         MineralIdentifier() { ; }
+
+        public void setType(IdentifierType _type) { type = _type; }
 
         public void initVuforia() {
             /*
@@ -396,6 +438,25 @@ public class Mugurel
         public void start() { tfod.activate(); }
         public void stop() { tfod.shutdown(); }
 
+        public boolean valid(Recognition r)
+        {
+            return true;
+        }
+
+        public List<Recognition> validRecognitions(List<Recognition> rec)
+        {
+            ArrayList<Recognition> list = new ArrayList<Recognition>();
+            for(Recognition r: rec)
+                if(valid(r))
+                    list.add(r);
+            return list;
+        }
+
+        public double getPosition(Recognition rec)
+        {
+            return ( (rec.getLeft() + rec.getRight()) / 2.0 );
+        }
+
         public int getGoldMineral()
         {
             /**
@@ -404,25 +465,69 @@ public class Mugurel
              * 1 = middle
              * 2 = right
              */
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if(updatedRecognitions == null) return last;
-            int goldCnt = 0;
-            for(Recognition rec: updatedRecognitions)
-                if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
-                    goldCnt++;
+            //List<Recognition> updatedRecognitions = tfod.getRecognitions();
+            //if(updatedRecognitions == null) return last;
+            List<Recognition> recognitions = validRecognitions(tfod.getRecognitions());
 
-            if(goldCnt > 1)    return -1;
-            if(goldCnt == 0)    return 2;
+            if(type == IdentifierType.ALL)
+            {
+                int allcnt = recognitions.size(), goldcnt = 0;
+                for(Recognition rec: recognitions)
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))   goldcnt++;
 
-            for(Recognition rec: updatedRecognitions)
-                if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
+                if(allcnt != 3 && goldcnt != 1) return -1;
+
+                double goldx = 0, silverx1 = 0, silverx2 = 0;
+                for(Recognition rec: recognitions)
                 {
-                    double pos = (rec.getLeft() + rec.getRight()) / 2.0;
-                    telemetry.addData("Position", pos);
-                    if(pos > middleX)   return 1;
-                    else return 0;
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
+                        goldx = getPosition(rec);
+                    else if(rec.getLabel().equals(LABEL_SILVER_MINERAL))
+                    {
+                        if(silverx1 == 0)   silverx1 = getPosition(rec);
+                        else    silverx2 = getPosition(rec);
+                    }
                 }
-            return 0;
+
+                if(silverx1 > silverx2) { double aux = silverx1; silverx1 = silverx2; silverx2 = aux; }
+
+                if(goldx < silverx1)    return 0;
+                if(goldx < silverx2)    return 1;
+                return 2;
+            }
+            else if(type == IdentifierType.LEFT_MID)
+            {
+                int goldcnt = 0;
+                for(Recognition rec: recognitions)
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))   goldcnt++;
+                if(goldcnt == 0)    return 2;
+                if(goldcnt > 1) return -1;
+                for(Recognition rec: recognitions)
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
+                    {
+                        double pos = getPosition(rec);
+                        if(pos > middleX)   return 1;
+                        else    return 0;
+                    }
+                return -1;
+            }
+            else if(type == IdentifierType.MID_RIGHT)
+            {
+                int goldcnt = 0;
+                for(Recognition rec: recognitions)
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))   goldcnt++;
+                if(goldcnt == 0)    return 0;
+                if(goldcnt > 1) return -1;
+                for(Recognition rec: recognitions)
+                    if(rec.getLabel().equals(LABEL_GOLD_MINERAL))
+                    {
+                        double pos = getPosition(rec);
+                        if(pos > middleX)   return 2;
+                        else    return 1;
+                    }
+                return -1;
+            }
+            return -1;
         }
 
         public int findGold()
@@ -433,6 +538,7 @@ public class Mugurel
             {
                 int where = getGoldMineral();
                 telemetry.addData(new Integer(i).toString(), where);
+                telemetry.update();
                 if(where != -1)
                     fq[where]++;
                 last = where;
@@ -440,6 +546,7 @@ public class Mugurel
             telemetry.addData("fq 0", fq[0]);
             telemetry.addData("fq 1", fq[1]);
             telemetry.addData("fq 2", fq[2]);
+            telemetry.update();
             int mx = -1, id = -1;
             for(int i = 0; i < 3; i++)
                 if(fq[i] > mx)
@@ -454,7 +561,7 @@ public class Mugurel
     public class Autonomous
     {
         public BNO055IMU imu;
-        public DistanceSensor front;
+        public ModernRoboticsI2cRangeSensor front;
         public double myAngle;
 
         Autonomous() { ; }
@@ -471,7 +578,7 @@ public class Mugurel
             imu = hardwareMap.get(BNO055IMU.class, "imu");
             imu.initialize(parameters);
             myAngle = getHeading();
-            front = hardwareMap.get(DistanceSensor.class, Config.frontSensor);
+            front = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.frontSensor);
 
             while(!imu.isGyroCalibrated())
             {
@@ -483,6 +590,8 @@ public class Mugurel
         }
 
         public double getFrontDistance() { return front.getDistance(DistanceUnit.MM); }
+
+        public void land() { lift.land(); }
 
         public void startTracking() { imu.startAccelerationIntegration(new Position(), new Velocity(), 200); }
         public void stopTracking() { imu.stopAccelerationIntegration(); }

@@ -73,6 +73,9 @@ public class AutonomousCrater extends LinearOpMode {
         int mineral = 1;
         //mineral = robot.identifier.findGold();
 
+        robot.lift.land();
+        sleep(500);
+
         robot.autonomous.move(150, Math.PI);
         robot.autonomous.rotateP(-90);
         robot.autonomous.move(300, 0);
