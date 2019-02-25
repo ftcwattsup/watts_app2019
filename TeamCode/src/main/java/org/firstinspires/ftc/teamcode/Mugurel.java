@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorREVColorDistance;
@@ -276,13 +277,22 @@ public class Mugurel
 
     public class Collector
     {
-        DcMotor rotLeft, rotRight, extender;
-        CRServo mat;
+        public DcMotor rotLeft, rotRight, extender;
+        public CRServo mat;
+        public Servo box;
+        public int posBox;
 
-        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique)
+        public double initPos = 0.25;
+        public double upPos = 0.15;
+        public double dropPos = 0.35;
+
+
+        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _box)
         {
-            rotLeft = _rotLeft; rotRight = _rotRight; extender = _extend; mat = _maturique;
+            rotLeft = _rotLeft; rotRight = _rotRight; extender = _extend; mat = _maturique; box = _box;
             mat.setDirection(DcMotorSimple.Direction.FORWARD);
+            box.setPosition(initPos);
+            posBox = 1;
             rotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             rotRight.setDirection(DcMotorSimple.Direction.REVERSE);
             extender.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -331,6 +341,26 @@ public class Mugurel
                 mat.getController().pwmEnable();
                 mat.setPower(-1.0);
             }
+        }
+
+        public void boxUp()
+        {
+            posBox++;
+            if(posBox > 2)  posBox = 2;
+            setBoxPosition(posBox);
+        }
+        public void boxDown()
+        {
+            posBox--;
+            if(posBox < 0)  posBox = 0;
+            setBoxPosition(posBox);
+        }
+
+        public void setBoxPosition(int pos)
+        {
+            if(pos == 0)    box.setPosition(initPos);
+            if(pos == 1)    box.setPosition(upPos);
+            if(pos == 2)    box.setPosition(dropPos);
         }
     }
 
@@ -866,7 +896,8 @@ public class Mugurel
                 hm.get(DcMotor.class, Config.rotLeft),
                 hm.get(DcMotor.class, Config.rotRight),
                 hm.get(DcMotor.class, Config.extend),
-                hm.get(CRServo.class, Config.maturique)
+                hm.get(CRServo.class, Config.maturique),
+                hm.get(Servo.class, Config.box)
         );
         lift = new Lifter( hm.get(DcMotor.class, Config.lift) );
         identifier = new MineralIdentifier();

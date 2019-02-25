@@ -82,7 +82,7 @@ public class DriverControled extends LinearOpMode {
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        boolean xPress = false, bPress = false;
+        boolean xPress = false, bPress = false, aPress = false, yPress = false;
         int matState = 0;
 
         while (opModeIsActive()) {
@@ -138,6 +138,25 @@ public class DriverControled extends LinearOpMode {
             }
             else bPress = false;
             robot.collector.collect(matState);
+
+            if(duta.getRawValue(MyGamepad.Buttons.Y))
+            {
+                if(!yPress)
+                {
+                    robot.collector.boxUp();
+                    yPress = true;
+                }
+            }
+            else yPress = false;
+            if(duta.getRawValue(MyGamepad.Buttons.A))
+            {
+                if(!aPress)
+                {
+                    robot.collector.boxDown();
+                    aPress = true;
+                }
+            }
+            else aPress = false;
 
             telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
             telemetry.addData("Distance", ds.getDistance(DistanceUnit.MM));

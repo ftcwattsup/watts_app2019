@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -63,9 +64,10 @@ public class Autonomous1 extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
 
         robot = new Mugurel(hardwareMap);
+        Servo servo = hardwareMap.get(Servo.class, Config.box);
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
-        robot.autonomous.init();
+        //robot.autonomous.init();
         telemetry.update();
 
         waitForStart();
@@ -73,23 +75,38 @@ public class Autonomous1 extends LinearOpMode {
 
         robot.afterStartInit();
 
+        boolean a = false, b = false;
+        double add = 0.05;
+
         while (opModeIsActive())
         {
-            //if(gamepad1.a)  robot.autonomous.rotateP(45);
-            //if(gamepad1.b)  robot.autonomous.rotateP(-45);
-            //if(gamepad1.x)  robot.autonomous.rotateP(135);
-            //if(gamepad1.y)  robot.autonomous.rotateP(-135);
+            double pos = servo.getPosition();
+            if(gamepad1.a)
+            {
+                if(!a)
+                {
+                    a = true;
+                    pos = pos + add;
+                    pos = Math.min(1.0, pos);
+                }
+            }
+            else    a = false;
 
-            if(gamepad1.a)  robot.autonomous.move(400, Math.PI / 2);
-            if(gamepad1.b)  robot.autonomous.move(400, -Math.PI / 2);
-            if(gamepad1.x)  robot.autonomous.move(1000, Math.PI / 2);
-            if(gamepad1.y)  robot.autonomous.move(1000, -Math.PI / 2);
+            if(gamepad1.b)
+            {
+                if(!b)
+                {
+                    b = true;
+                    pos = pos - add;
+                    pos = Math.max(0.0, pos);
+                }
+            }
+            else    b = false;
 
-            if(gamepad2.a)  robot.runner.move(1, 1, 0);
-            else if(gamepad2.b) robot.runner.move(-1, -1, 0);
-            else if(gamepad2.x) robot.runner.move(-1, 1, 0);
-            else if(gamepad2.y) robot.runner.move(1, -1, 0);
-            else    robot.runner.move(0, 0, 0);
+            servo.setPosition(pos);
+
+            telemetry.addData("Pos", servo.getPosition());
+            telemetry.update();
         }
     }
 }
