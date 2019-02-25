@@ -43,3 +43,7 @@ Add maxTime.
 Strafe left/right method.
 Reduce rotations.
 Calculate distances.
+
+Functie fata-spate (copy-paste la ce avem acum).
+Functie stanga-dreapta (verificat cate tick-uri merge in lateral).
+Functie mers intr-o parte dupa un senzor dat pana la o distanta.
