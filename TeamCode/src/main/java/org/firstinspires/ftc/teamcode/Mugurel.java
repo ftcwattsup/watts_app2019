@@ -380,7 +380,7 @@ public class Mugurel
 
         public void land()
         {
-            goToPosition(tickInterval, 0.7);
+            goToPosition(tickInterval, 1.0);
         }
     }
 
@@ -433,6 +433,7 @@ public class Mugurel
                 telemetry.addData("Sorry!", "This device is not compatible with TFOD");
             }
             telemetry.addData("Vuforia intialized!", " ");
+            start();
         }
 
         public void start() { tfod.activate(); }
@@ -440,6 +441,8 @@ public class Mugurel
 
         public boolean valid(Recognition r)
         {
+            double ypos = ( (r.getTop() + r.getBottom()) / 2.0 );
+            if(ypos < 250.0)    return false;
             return true;
         }
 
@@ -468,6 +471,8 @@ public class Mugurel
             //List<Recognition> updatedRecognitions = tfod.getRecognitions();
             //if(updatedRecognitions == null) return last;
             List<Recognition> recognitions = validRecognitions(tfod.getRecognitions());
+
+            telemetry.addData("Size", recognitions.size());
 
             if(type == IdentifierType.ALL)
             {
@@ -532,6 +537,9 @@ public class Mugurel
 
         public int findGold()
         {
+            //telemetry.setAutoClear(false);
+            //start();
+            //opmode.sleep(1000);
             int count = 10;
             int[] fq = new int[3];
             for(int i = 0; i < count; i++)
@@ -554,6 +562,7 @@ public class Mugurel
                     mx = fq[i];
                     id = i;
                 }
+            stop();
             return id;
         }
     }
@@ -626,6 +635,13 @@ public class Mugurel
             return pw;
         }
 
+        public void rotateTo(double degrees)
+        {
+            degrees = AngleUnit.normalizeDegrees(degrees);
+            double dist = getAngleDistance(getHeading(), degrees);
+            rotateP(dist);
+        }
+
         public void rotateP(double degrees)
         {
             runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -693,7 +709,7 @@ public class Mugurel
             double lastPower = 0.0;
             double maxDifference = 0.05;
             int ticksDecrease = (int)(2.5 * ticksPerRevolution);
-            double angleDecrease = 90.0;
+            double angleDecrease = 45.0;
 
             double heading = getHeading();
 
@@ -739,6 +755,9 @@ public class Mugurel
 
         public void move(double distance, double angle)
         {
+            //moveStraight(distance, angle);
+            //if(distance != -23232)  return;
+
             angle += Math.PI / 2.0;
             double dx = distance * Math.cos(angle);
             double dy = distance * Math.sin(angle);

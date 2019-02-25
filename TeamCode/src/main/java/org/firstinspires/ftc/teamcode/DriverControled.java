@@ -82,7 +82,6 @@ public class DriverControled extends LinearOpMode {
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        double maturiquePower = 1.0;
         boolean xPress = false, bPress = false;
         int matState = 0;
 

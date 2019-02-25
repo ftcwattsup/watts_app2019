@@ -58,10 +58,19 @@ public class AutonomousCrater extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
+        double fromMiddle = 150;
+        double betweenMinerals = 356;
+        double inFrontOfMinerals = 300;
+        double scoreMinerals = 350;
+        double toWall = 900;
+        double toDepot = 900;
+        double toCrater = 1400;
+
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.initTelemetry(telemetry);
-        //robot.identifier.init();
+        robot.identifier.init();
+        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
         robot.autonomous.init();
         telemetry.update();
 
@@ -70,36 +79,45 @@ public class AutonomousCrater extends LinearOpMode {
 
         robot.afterStartInit();
 
+        //robot.autonomous.land();
+        //sleep(200);
+        robot.autonomous.move(fromMiddle, Math.PI);
+
         int mineral = 1;
         //mineral = robot.identifier.findGold();
 
-        robot.lift.land();
         sleep(500);
 
-        robot.autonomous.move(150, Math.PI);
-        robot.autonomous.rotateP(-90);
-        robot.autonomous.move(300, 0);
+        robot.autonomous.move(inFrontOfMinerals, -Math.PI / 2);
+        robot.autonomous.rotateTo(0);
 
+        double distance = betweenMinerals + fromMiddle + toWall;
         if(mineral == 0)    /// Left
-            robot.autonomous.move(550, Math.PI / 2);
+        {
+            robot.autonomous.move(betweenMinerals + fromMiddle, 0);
+            distance -= betweenMinerals + fromMiddle;
+        }
         else if(mineral == 1)   /// Middle
-            robot.autonomous.move(100, Math.PI / 2);
+        {
+            robot.autonomous.move(fromMiddle, 0);
+            distance -= fromMiddle;
+        }
         else if(mineral == 2)   /// Right
-            robot.autonomous.move(300, -Math.PI / 2);
+        {
+            distance += betweenMinerals - fromMiddle;
+            robot.autonomous.move(betweenMinerals - fromMiddle, Math.PI);
+        }
 
-        robot.autonomous.move(300, 0);
-        robot.autonomous.move(300, Math.PI);
+        robot.autonomous.move(scoreMinerals, -Math.PI / 2);
+        robot.autonomous.move(scoreMinerals, Math.PI / 2);
 
-        robot.autonomous.rotateP(90);
+        robot.autonomous.rotateTo(0);
+        robot.autonomous.move(distance, 0);
+        robot.autonomous.rotateTo(45);
 
-        robot.autonomous.moveUntilDistance(450, 0);
-        robot.autonomous.rotateP(45);
-        sleep(400);
-        robot.autonomous.moveUntilDistance(500, 0);
-
+        robot.autonomous.move(toDepot, 0);
         sleep(1000);
-
-        robot.autonomous.move(1450, Math.PI);
+        robot.autonomous.move(toCrater, Math.PI);
 
         while(opModeIsActive()) { ; }
     }

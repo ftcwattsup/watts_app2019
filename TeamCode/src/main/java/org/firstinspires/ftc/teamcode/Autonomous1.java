@@ -65,7 +65,6 @@ public class Autonomous1 extends LinearOpMode {
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
-        //robot.identifier.init();
         robot.autonomous.init();
         telemetry.update();
 
@@ -76,10 +75,21 @@ public class Autonomous1 extends LinearOpMode {
 
         while (opModeIsActive())
         {
+            //if(gamepad1.a)  robot.autonomous.rotateP(45);
+            //if(gamepad1.b)  robot.autonomous.rotateP(-45);
+            //if(gamepad1.x)  robot.autonomous.rotateP(135);
+            //if(gamepad1.y)  robot.autonomous.rotateP(-135);
+
             if(gamepad1.a)  robot.autonomous.move(400, Math.PI / 2);
             if(gamepad1.b)  robot.autonomous.move(400, -Math.PI / 2);
             if(gamepad1.x)  robot.autonomous.move(1000, Math.PI / 2);
             if(gamepad1.y)  robot.autonomous.move(1000, -Math.PI / 2);
+
+            if(gamepad2.a)  robot.runner.move(1, 1, 0);
+            else if(gamepad2.b) robot.runner.move(-1, -1, 0);
+            else if(gamepad2.x) robot.runner.move(-1, 1, 0);
+            else if(gamepad2.y) robot.runner.move(1, -1, 0);
+            else    robot.runner.move(0, 0, 0);
         }
     }
 }
