@@ -110,7 +110,8 @@ public class DriverControled extends LinearOpMode {
             else if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER)  > 0.3) robot.runner.move(gajux, gajuy, gajur, 0.3);
             else robot.runner.move(gajux, gajuy, gajur);
 
-            robot.collector.rotate(duta.getValue(MyGamepad.Axes.LEFT_Y) * 0.5);
+            robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y));
+
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
             if(duta.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   ext += 1.0;
@@ -160,6 +161,10 @@ public class DriverControled extends LinearOpMode {
 
             telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
             telemetry.addData("Distance", ds.getDistance(DistanceUnit.MM));
+            telemetry.addData("rotLeftTicks", robot.collector.rotLeft.getTargetPosition());
+            telemetry.addData("rotRightTicks", robot.collector.rotRight.getTargetPosition());
+            telemetry.addData("rotLeftCurrent", robot.collector.rotLeft.getCurrentPosition());
+            telemetry.addData("rotRightCurrent", robot.collector.rotRight.getCurrentPosition());
             telemetry.update();
         }
     }

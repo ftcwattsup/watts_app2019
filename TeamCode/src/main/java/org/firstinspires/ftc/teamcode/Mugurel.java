@@ -285,6 +285,7 @@ public class Mugurel
         public double initPos = 0.25;
         public double upPos = 0.15;
         public double dropPos = 0.35;
+        public int rotTicks = 125;
 
 
         Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _box)
@@ -295,28 +296,39 @@ public class Mugurel
             posBox = 1;
             rotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             rotRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            extender.setDirection(DcMotorSimple.Direction.FORWARD);
+            extender.setDirection(DcMotorSimple.Direction.REVERSE);
             rotLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rotRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rotLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             rotRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            extender.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
 
         public void afterInitStart()
         {
-            rotLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rotRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            double power = 1.0;
+            rotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rotLeft.setTargetPosition(0);
+            rotRight.setTargetPosition(0);
+            rotLeft.setPower(power);
+            rotRight.setPower(power);
+
             extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
+        public void addTicks(double y)  { addTicks((int)(y * rotTicks)); }
+        public void addTicks(int ticks)
+        {
+            rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
+            rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
+        }
+
 
         public void rotate(double speed)
         {
             rotLeft.setPower(speed);
             rotRight.setPower(speed);
-
-            telemetry.addData("Zero left", rotLeft.getZeroPowerBehavior().toString());
-            telemetry.addData("Zero Right", rotRight.getZeroPowerBehavior().toString());
         }
 
         public void extend(double speed)
@@ -355,7 +367,6 @@ public class Mugurel
             if(posBox < 0)  posBox = 0;
             setBoxPosition(posBox);
         }
-
         public void setBoxPosition(int pos)
         {
             if(pos == 0)    box.setPosition(initPos);
