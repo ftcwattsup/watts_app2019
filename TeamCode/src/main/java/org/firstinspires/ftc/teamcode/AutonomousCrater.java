@@ -77,8 +77,7 @@ public class AutonomousCrater extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        robot.afterStartInit();
-
+        //robot.autonomous.moveLeftRight(1000);
         //robot.autonomous.land();
         //sleep(200);
         robot.autonomous.move(fromMiddle, Math.PI);

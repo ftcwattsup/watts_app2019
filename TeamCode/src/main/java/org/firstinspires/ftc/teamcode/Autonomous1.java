@@ -58,7 +58,7 @@ public class Autonomous1 extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
-
+    //Autonomous automnomus=new Autonomous()
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -74,7 +74,7 @@ public class Autonomous1 extends LinearOpMode {
         runtime.reset();
 
         robot.afterStartInit();
-
+        robot.afterStartInit();
         boolean a = false, b = false;
         double add = 0.05;
 
