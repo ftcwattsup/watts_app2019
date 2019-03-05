@@ -17,4 +17,6 @@ public class Config
     public static final String lift = "lift";
 
     public static final String frontSensor = "fata";
+    public static final String leftSensor = "st";
+    public static final String rightSensor = "dr";
 }

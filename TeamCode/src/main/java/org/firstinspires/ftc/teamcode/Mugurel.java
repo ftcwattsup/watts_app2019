@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.text.style.LineHeightSpan;
 
+import com.qualcomm.ftccommon.configuration.EditI2cDevicesActivityAbstract;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
@@ -42,8 +44,7 @@ public class Mugurel {
     public double ticksPerRevolution;
 
     public enum IdentifierType {ALL, LEFT_MID, MID_RIGHT}
-
-    ;
+    public enum AutonomousMoveType { FORWARD, BACKWARD, LEFT, RIGHT, ROTATE }
 
     public class Runner {
         /**
@@ -274,12 +275,18 @@ public class Mugurel {
         }
 
         public boolean isBusy() {
-            int cnt = 0;
+
+            final int LIMIT = 5;
+            int rem = getTicksDistance();
+            if(rem <= LIMIT)    return false;
+            return true;
+
+            /*int cnt = 0;
             if (leftFront.isBusy()) cnt++;
             if (leftBack.isBusy()) cnt++;
             if (rightFront.isBusy()) cnt++;
             if (rightBack.isBusy()) cnt++;
-            return (cnt > 1);
+            return (cnt > 1);*/
         }
 
         public void showPositions() {
@@ -616,7 +623,7 @@ public class Mugurel {
 
     public class Autonomous {
         public BNO055IMU imu;
-        public ModernRoboticsI2cRangeSensor front;
+        public ModernRoboticsI2cRangeSensor front, left, right;
 
         public double myAngle;
 
@@ -635,7 +642,13 @@ public class Mugurel {
             imu = hardwareMap.get(BNO055IMU.class, "imu");
             imu.initialize(parameters);
             myAngle = getHeading();
+
             front = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.frontSensor);
+            front.setI2cAddress(I2cAddr.create8bit(0x2a));
+            left = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.leftSensor);
+            left.setI2cAddress(I2cAddr.create8bit(0x2c));
+            right = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.rightSensor);
+            right.setI2cAddress(I2cAddr.create8bit(0x28));
 
             while (!imu.isGyroCalibrated()) {
                 telemetry.addData("Gyro", "Calibrating...");
@@ -753,11 +766,63 @@ public class Mugurel {
         }
 
         public int distanceToTicksLeftRight(double dist) {
-            double ans = (dist * 1.85); //mm
+            //double ans = (dist * 1.85); //mm
+            double ans = (double) distanceToTicks(dist);
             return (int) ans;
         }
 
-        public void moveLeftRight(double distance) {
+        public void moveForwardBackward(double distance, AutonomousMoveType type)
+        {
+            if(type != AutonomousMoveType.FORWARD && type != AutonomousMoveType.BACKWARD)   return;
+            int ticks = distanceToTicks(distance);
+            if(type == AutonomousMoveType.BACKWARD)    ticks = -ticks;
+            runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
+            runner.setTargetPositions(ticks, ticks, ticks, ticks);
+            move();
+        }
+
+        public void moveLeftRight(double distance, AutonomousMoveType type)
+        {
+            if(type != AutonomousMoveType.LEFT && type != AutonomousMoveType.RIGHT) return;
+            int ticks = distanceToTicksLeftRight(distance);
+            if(type == AutonomousMoveType.LEFT) ticks = -ticks;
+            runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
+            runner.setTargetPositions(ticks, -ticks, -ticks, ticks);
+            move();
+        }
+
+        public void move()
+        {
+            double lastPower = 0.0;
+            double maxDifference = 0.05;
+            int ticksDecrease = (int) (1.25 * ticksPerRevolution);
+            while (runner.isBusy()) {
+                double power = 0.0;
+
+                int ticksDistance = runner.getTicksDistance();
+
+                if (ticksDistance < ticksDecrease)
+                    power = (double) ticksDistance / (double) ticksDecrease;
+                else
+                    power = 1.0;
+
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+                power = Math.max(power, 0.05);
+                lastPower = power;
+
+                runner.setPower(power);
+                runner.showPositions();
+
+                if (!opmode.opModeIsActive()) {
+                    runner.stop();
+                    return;
+                }
+            }
+            runner.stop();
+        }
+
+        /*public void moveLeftRight(double distance) {
             runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
             //runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             int numberOfTicks = distanceToTicksLeftRight(distance);
@@ -833,8 +898,6 @@ public class Mugurel {
         }
 
         public void move(double distance, double angle) {
-            //moveStraight(distance, angle);
-            //if(distance != -23232)  return;
 
             angle += Math.PI / 2.0;
             double dx = distance * Math.cos(angle);
@@ -880,9 +943,50 @@ public class Mugurel {
                 }
             }
             runner.stop();
+        }*/
+
+        public void moveSensorDistance(ModernRoboticsI2cRangeSensor sensor, double distance)
+        {
+            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            int dir = 0;
+            if(sensor == front) dir = 0;
+            if(sensor == left)  dir = 1;
+            if(sensor == right) dir = 2;
+
+            double lastPower = 0.0;
+            double maxDifference = 0.05;
+            double decrease = 150;
+            while (runner.isBusy()) {
+
+                double now = sensor.getDistance(DistanceUnit.MM);
+                if(now <= distance) break;
+
+                double power = 0.0;
+                double dif = now - distance;
+                if(dif < decrease)
+                    power = dif / decrease;
+                else
+                    power = 1.0;
+
+                power = Math.max(power, lastPower + maxDifference);
+                power = Math.min(power, lastPower - maxDifference);
+                power = Math.max(power, 0.05);
+                lastPower = power;
+
+                if(dir == 0)    runner.setPower(power);
+                if(dir == 1)    runner.setPower(-power, power, power, -power);
+                if(dir == 2)    runner.setPower(power, -power, -power, power);
+
+                if (!opmode.opModeIsActive()) {
+                    runner.stop();
+                    return;
+                }
+            }
+            runner.stop();
         }
 
-        public void moveUntilDistance(double distance, double angle) {
+        /*public void moveUntilDistance(double distance, double angle) {
             angle += Math.PI / 2.0;
             runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
             double accepted = 5.0;
@@ -917,7 +1021,7 @@ public class Mugurel {
                 }
             }
             runner.stop();
-        }
+        }*/
     }
 
     public Runner runner;
