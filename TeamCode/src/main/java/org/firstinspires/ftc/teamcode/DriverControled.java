@@ -71,8 +71,8 @@ public class DriverControled extends LinearOpMode {
         gaju = new MyGamepad(gamepad1);
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
-
-        ModernRoboticsI2cRangeSensor ds = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.frontSensor);
+        robot.initTelemetry(telemetry);
+        robot.autonomous.init();
 
         robot.initTelemetry(telemetry);
 
@@ -159,8 +159,8 @@ public class DriverControled extends LinearOpMode {
             }
             else aPress = false;
 
+            robot.autonomous.showDistances();
             telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
-            telemetry.addData("Distance", ds.getDistance(DistanceUnit.MM));
             telemetry.addData("rotLeftTicks", robot.collector.rotLeft.getTargetPosition());
             telemetry.addData("rotRightTicks", robot.collector.rotRight.getTargetPosition());
             telemetry.addData("rotLeftCurrent", robot.collector.rotLeft.getCurrentPosition());

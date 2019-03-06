@@ -403,7 +403,7 @@ public class Mugurel {
 
     public class Lifter {
         public DcMotor motor;
-        public final static int tickInterval = 5500;
+        public final static int tickInterval = 5100;
 
         Lifter(DcMotor _motor) {
             motor = _motor;
@@ -623,7 +623,7 @@ public class Mugurel {
 
     public class Autonomous {
         public BNO055IMU imu;
-        public ModernRoboticsI2cRangeSensor front, left, right;
+        public ModernRoboticsI2cRangeSensor back, left, right;
 
         public double myAngle;
 
@@ -643,12 +643,12 @@ public class Mugurel {
             imu.initialize(parameters);
             myAngle = getHeading();
 
-            front = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.frontSensor);
-            front.setI2cAddress(I2cAddr.create8bit(0x2a));
+            back = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.backSensor);
+            //back.setI2cAddress(I2cAddr.create8bit(0x28));
             left = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.leftSensor);
-            left.setI2cAddress(I2cAddr.create8bit(0x2c));
+            //left.setI2cAddress(I2cAddr.create8bit(0x28));
             right = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.rightSensor);
-            right.setI2cAddress(I2cAddr.create8bit(0x28));
+            //right.setI2cAddress(I2cAddr.create8bit(0x28));
 
             while (!imu.isGyroCalibrated()) {
                 telemetry.addData("Gyro", "Calibrating...");
@@ -656,10 +656,6 @@ public class Mugurel {
             }
             telemetry.addData("Gyro", "Calibrated");
             telemetry.update();
-        }
-
-        public double getFrontDistance() {
-            return front.getDistance(DistanceUnit.MM);
         }
 
         public void land() {
@@ -708,6 +704,14 @@ public class Mugurel {
             double dist = fin - start;
             dist = AngleUnit.normalizeDegrees(dist);
             return dist;
+        }
+
+        public void showDistances()
+        {
+            telemetry.addData("Back", back.getDistance(DistanceUnit.MM));
+            telemetry.addData("Left", left.getDistance(DistanceUnit.MM));
+            telemetry.addData("Right", right.getDistance(DistanceUnit.MM));
+            //telemetry.update();
         }
 
         public double getPower(double pw) {
@@ -794,8 +798,9 @@ public class Mugurel {
         public void move()
         {
             double lastPower = 0.0;
-            double maxDifference = 0.05;
+            double maxDifference = 0.1;
             int ticksDecrease = (int) (1.25 * ticksPerRevolution);
+            double angleStart = getHeading();
             while (runner.isBusy()) {
                 double power = 0.0;
 
@@ -820,6 +825,7 @@ public class Mugurel {
                 }
             }
             runner.stop();
+            rotateTo(angleStart);
         }
 
         /*public void moveLeftRight(double distance) {
@@ -950,15 +956,15 @@ public class Mugurel {
             runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
 
             int dir = 0;
-            if(sensor == front) dir = 0;
+            if(sensor == back) dir = 0;
             if(sensor == left)  dir = 1;
             if(sensor == right) dir = 2;
 
             double lastPower = 0.0;
             double maxDifference = 0.05;
-            double decrease = 150;
+            double decrease = 250;
             while (runner.isBusy()) {
-
+                showDistances();
                 double now = sensor.getDistance(DistanceUnit.MM);
                 if(now <= distance) break;
 
@@ -969,12 +975,14 @@ public class Mugurel {
                 else
                     power = 1.0;
 
-                power = Math.max(power, lastPower + maxDifference);
-                power = Math.min(power, lastPower - maxDifference);
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
                 power = Math.max(power, 0.05);
                 lastPower = power;
+                telemetry.addData("Power", power);
+                telemetry.update();
 
-                if(dir == 0)    runner.setPower(power);
+                if(dir == 0)    runner.setPower(-power);
                 if(dir == 1)    runner.setPower(-power, power, power, -power);
                 if(dir == 2)    runner.setPower(power, -power, -power, power);
 

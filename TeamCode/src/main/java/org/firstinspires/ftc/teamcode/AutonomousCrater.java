@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -60,24 +62,66 @@ public class AutonomousCrater extends LinearOpMode {
 
         double fromMiddle = 150;
         double betweenMinerals = 356;
-        double inFrontOfMinerals = 300;
-        double scoreMinerals = 350;
-        double toWall = 900;
-        double toDepot = 900;
-        double toCrater = 1400;
+        double inFrontOfMinerals = 350;
+        double scoreMinerals = 300;
+        double toWall = 700;
+        double toCrater = 1200;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.initTelemetry(telemetry);
         robot.identifier.init();
-        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
+        robot.identifier.setType(Mugurel.IdentifierType.LEFT_MID);
         robot.autonomous.init();
         telemetry.update();
 
         waitForStart();
         runtime.reset();
 
-        //robot.autonomous.moveLeftRight(1000);
+        robot.autonomous.land();
+        robot.autonomous.moveForwardBackward(fromMiddle, Mugurel.AutonomousMoveType.FORWARD);
+
+        int mineral = 1;
+        mineral = robot.identifier.findGold();
+
+        robot.autonomous.rotateTo(-90);
+        robot.autonomous.moveForwardBackward(inFrontOfMinerals, Mugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.rotateTo(0);
+
+        double distance = betweenMinerals + fromMiddle;
+        if(mineral == 0)    /// Left
+        {
+            robot.autonomous.moveForwardBackward(betweenMinerals - fromMiddle, Mugurel.AutonomousMoveType.FORWARD);
+            distance = 0;
+        }
+        else if(mineral == 1)   /// Middle
+        {
+            robot.autonomous.moveForwardBackward(fromMiddle, Mugurel.AutonomousMoveType.BACKWARD);
+            distance = betweenMinerals;
+        }
+        else if(mineral == 2)
+        {
+            robot.autonomous.moveForwardBackward(fromMiddle + betweenMinerals, Mugurel.AutonomousMoveType.BACKWARD);
+            distance = 2 * betweenMinerals;
+        }
+
+        robot.autonomous.rotateTo(-90);
+        robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.BACKWARD);
+        robot.autonomous.rotateTo(0);
+
+        robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.rotateTo(-135);
+        robot.autonomous.moveSensorDistance(robot.autonomous.left, 120);
+        robot.autonomous.rotateTo(-135);
+
+        robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
+
+        sleep(500);
+
+        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
+
+        /*
         //robot.autonomous.land();
         //sleep(200);
         robot.autonomous.move(fromMiddle, Math.PI);
@@ -116,7 +160,7 @@ public class AutonomousCrater extends LinearOpMode {
 
         robot.autonomous.move(toDepot, 0);
         sleep(1000);
-        robot.autonomous.move(toCrater, Math.PI);
+        robot.autonomous.move(toCrater, Math.PI);*/
 
         while(opModeIsActive()) { ; }
     }

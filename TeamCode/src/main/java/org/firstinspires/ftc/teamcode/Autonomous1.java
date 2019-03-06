@@ -67,7 +67,7 @@ public class Autonomous1 extends LinearOpMode {
         Servo servo = hardwareMap.get(Servo.class, Config.box);
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
-        //robot.autonomous.init();
+        robot.autonomous.init();
         telemetry.update();
 
         waitForStart();
