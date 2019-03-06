@@ -72,9 +72,7 @@ public class DriverControled extends LinearOpMode {
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
         robot.initTelemetry(telemetry);
-        robot.autonomous.init();
-
-        robot.initTelemetry(telemetry);
+        robot.setOpmode(this);
 
         waitForStart();
         runtime.reset();
@@ -95,10 +93,14 @@ public class DriverControled extends LinearOpMode {
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            if(gaju.getValue(MyGamepad.Buttons.DPAD_UP) == true)    robot.runner.setFace(0);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN) == true)    robot.runner.setFace(Math.PI);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_LEFT) == true)    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT) == true)    robot.runner.setFace(-Math.PI / 2.0);
+            if(gaju.getValue(MyGamepad.Buttons.Y) == true)    robot.runner.setFace(0);
+            else if(gaju.getValue(MyGamepad.Buttons.A) == true)    robot.runner.setFace(Math.PI);
+            else if(gaju.getValue(MyGamepad.Buttons.X) == true)    robot.runner.setFace(Math.PI / 2.0);
+            else if(gaju.getValue(MyGamepad.Buttons.B) == true)    robot.runner.setFace(-Math.PI / 2.0);
+
+            double modifier = 1.0;
+            if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    modifier = 0.5;
+            if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   modifier = 0.3;
 
             double gajux = gaju.getValue(MyGamepad.Axes.LEFT_X);
             double gajuy = gaju.getValue(MyGamepad.Axes.LEFT_Y);
@@ -106,9 +108,11 @@ public class DriverControled extends LinearOpMode {
             //if(gaju.getValue(MyGamepad.Buttons.X))  gajux += -1.0;
             //if(gaju.getValue(MyGamepad.Buttons.B))  gajux += 1.0;
 
-            if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    robot.runner.move(gajux, gajuy, gajur, 0.5);
-            else if(gaju.getValue(MyGamepad.Axes.RIGHT_TRIGGER)  > 0.3) robot.runner.move(gajux, gajuy, gajur, 0.3);
-            else robot.runner.move(gajux, gajuy, gajur);
+            if(gaju.getValue(MyGamepad.Buttons.DPAD_UP))    robot.runner.move(0, 1, 0, modifier);
+            else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN)) robot.runner.move(0, -1, 0, modifier);
+            else if(gaju.getValue(MyGamepad.Buttons.DPAD_LEFT)) robot.runner.move(-1, 0, 0, modifier);
+            else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT))    robot.runner.move(1, 0, 0, modifier);
+            else    robot.runner.move(gajux, gajuy, gajur, modifier);
 
             robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y));
 
@@ -159,7 +163,6 @@ public class DriverControled extends LinearOpMode {
             }
             else aPress = false;
 
-            robot.autonomous.showDistances();
             telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
             telemetry.addData("rotLeftTicks", robot.collector.rotLeft.getTargetPosition());
             telemetry.addData("rotRightTicks", robot.collector.rotRight.getTargetPosition());

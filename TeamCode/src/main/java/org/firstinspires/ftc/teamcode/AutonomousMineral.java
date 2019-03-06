@@ -33,8 +33,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
-
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -49,9 +47,9 @@ import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Crater", group="Linear Opmode")
+@Autonomous(name="Autonomous Minerals", group="Linear Opmode")
 //@Disabled
-public class AutonomousCrater extends LinearOpMode {
+public class AutonomousMineral extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -61,11 +59,9 @@ public class AutonomousCrater extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
 
         double fromMiddle = 150;
-        double betweenMinerals = 357;
+        double betweenMinerals = 356;
         double inFrontOfMinerals = 350;
         double scoreMinerals = 300;
-        double toWall = 650;
-        double toCrater = 1200;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -109,17 +105,6 @@ public class AutonomousCrater extends LinearOpMode {
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.FORWARD);
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.BACKWARD);
         robot.autonomous.rotateTo(0);
-
-        robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
-        robot.autonomous.rotateTo(-135);
-        robot.autonomous.moveSensorDistance(robot.autonomous.left, 120);
-        robot.autonomous.rotateTo(-135);
-
-        robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
-
-        sleep(500);
-
-        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
 
         while(opModeIsActive()) { ; }
     }

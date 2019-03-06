@@ -33,8 +33,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
-
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -49,9 +47,9 @@ import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Crater", group="Linear Opmode")
+@Autonomous(name="Autonomous Depot", group="Linear Opmode")
 //@Disabled
-public class AutonomousCrater extends LinearOpMode {
+public class AutonomousDepot extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -111,9 +109,9 @@ public class AutonomousCrater extends LinearOpMode {
         robot.autonomous.rotateTo(0);
 
         robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
-        robot.autonomous.rotateTo(-135);
-        robot.autonomous.moveSensorDistance(robot.autonomous.left, 120);
-        robot.autonomous.rotateTo(-135);
+        robot.autonomous.rotateTo(45);
+        robot.autonomous.moveSensorDistance(robot.autonomous.right, 120);
+        robot.autonomous.rotateTo(45);
 
         robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
 

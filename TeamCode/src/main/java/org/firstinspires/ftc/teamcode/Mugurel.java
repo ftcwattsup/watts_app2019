@@ -792,7 +792,9 @@ public class Mugurel {
             if(type == AutonomousMoveType.LEFT) ticks = -ticks;
             runner.reset(DcMotor.RunMode.RUN_TO_POSITION);
             runner.setTargetPositions(ticks, -ticks, -ticks, ticks);
+            double startAngle = getHeading();
             move();
+            rotateTo(startAngle);
         }
 
         public void move()
@@ -825,7 +827,7 @@ public class Mugurel {
                 }
             }
             runner.stop();
-            rotateTo(angleStart);
+            //rotateTo(angleStart);
         }
 
         /*public void moveLeftRight(double distance) {
