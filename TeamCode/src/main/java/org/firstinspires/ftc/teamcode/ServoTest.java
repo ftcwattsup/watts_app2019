@@ -29,13 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -55,42 +58,56 @@ import com.qualcomm.robotcore.util.Range;
 @Disabled
 public class ServoTest extends LinearOpMode {
 
-    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-
+    private Mugurel robot;
+    //Autonomous automnomus=new Autonomous()
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
-        CRServo mat = hardwareMap.get(CRServo.class, "mat");
-        mat.getController().pwmDisable();
+        robot = new Mugurel(hardwareMap);
+        Servo servo = hardwareMap.get(Servo.class, Config.box);
+        robot.initTelemetry(telemetry);
+        robot.setOpmode(this);
+        robot.autonomous.init();
+        telemetry.update();
 
         waitForStart();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+        robot.afterStartInit();
+        robot.afterStartInit();
+        boolean a = false, b = false;
+        double add = 0.05;
 
-            int direction = 0;
-            if(gamepad1.a)  direction = 1;
-            if(gamepad1.b)  direction = -1;
-            if(direction == 0)
+        while (opModeIsActive())
+        {
+            double pos = servo.getPosition();
+            if(gamepad1.a)
             {
-                mat.getController().pwmDisable();
+                if(!a)
+                {
+                    a = true;
+                    pos = pos + add;
+                    pos = Math.min(1.0, pos);
+                }
             }
-            else if(direction == 1)
-            {
-                mat.getController().pwmEnable();
-                mat.setPower(1.0);
-            }
-            else if(direction == -1)
-            {
-                mat.getController().pwmEnable();
-                mat.setPower(-1.0);
-            }
+            else    a = false;
 
+            if(gamepad1.b)
+            {
+                if(!b)
+                {
+                    b = true;
+                    pos = pos - add;
+                    pos = Math.max(0.0, pos);
+                }
+            }
+            else    b = false;
+
+            servo.setPosition(pos);
+
+            telemetry.addData("Pos", servo.getPosition());
             telemetry.update();
         }
     }

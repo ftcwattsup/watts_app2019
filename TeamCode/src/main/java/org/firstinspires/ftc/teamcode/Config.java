@@ -12,9 +12,11 @@ public class Config
     public static final String rotLeft = "rotl";
     public static final String rotRight = "rotr";
     public static final String extend = "ext";
+    public static final String lift = "lift";
+
     public static final String maturique = "mat";
     public static final String box = "box";
-    public static final String lift = "lift";
+    public static final String marker = "mrk";
 
     public static final String backSensor = "bck";
     public static final String leftSensor = "st";

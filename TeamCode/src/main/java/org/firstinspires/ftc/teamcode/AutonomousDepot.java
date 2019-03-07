@@ -58,12 +58,12 @@ public class AutonomousDepot extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double fromMiddle = 150;
+        double fromMiddle = 120;
         double betweenMinerals = 357;
         double inFrontOfMinerals = 350;
-        double scoreMinerals = 300;
+        double scoreMinerals = 320;
         double toWall = 650;
-        double toCrater = 1200;
+        double toCrater = 1400;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -110,12 +110,13 @@ public class AutonomousDepot extends LinearOpMode {
 
         robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
         robot.autonomous.rotateTo(45);
-        robot.autonomous.moveSensorDistance(robot.autonomous.right, 120);
+        robot.autonomous.moveSensorDistance(robot.autonomous.right, 150);
         robot.autonomous.rotateTo(45);
 
         robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
 
-        sleep(500);
+        robot.autonomous.dropMarker();
+        sleep(200);
 
         robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
 

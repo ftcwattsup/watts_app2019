@@ -31,12 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -54,59 +49,61 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Autonomous(name="Autonomous Test", group="Linear Opmode")
 //@Disabled
-public class Autonomous1 extends LinearOpMode {
+public class AutonomousTest extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
-    //Autonomous automnomus=new Autonomous()
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
+        double goMid = 630;
+        double goSide = 700;
+        double angle = 30;
+        double backMid = 250;
+        double backSide = 300;
+
         robot = new Mugurel(hardwareMap);
-        Servo servo = hardwareMap.get(Servo.class, Config.box);
-        robot.initTelemetry(telemetry);
         robot.setOpmode(this);
+        robot.initTelemetry(telemetry);
+        robot.identifier.init();
+        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
+        robot.identifier.setMid(750);
         robot.autonomous.init();
         telemetry.update();
 
         waitForStart();
         runtime.reset();
 
-        robot.afterStartInit();
-        robot.afterStartInit();
-        boolean a = false, b = false;
-        double add = 0.05;
+        robot.autonomous.land();
 
-        while (opModeIsActive())
+        int mineral = 1;
+        mineral = robot.identifier.findGold();
+
+        //robot.autonomous.rotateTo(-90);
+
+        if(mineral == 0)
         {
-            double pos = servo.getPosition();
-            if(gamepad1.a)
-            {
-                if(!a)
-                {
-                    a = true;
-                    pos = pos + add;
-                    pos = Math.min(1.0, pos);
-                }
-            }
-            else    a = false;
-
-            if(gamepad1.b)
-            {
-                if(!b)
-                {
-                    b = true;
-                    pos = pos - add;
-                    pos = Math.max(0.0, pos);
-                }
-            }
-            else    b = false;
-
-            servo.setPosition(pos);
-
-            telemetry.addData("Pos", servo.getPosition());
-            telemetry.update();
+            robot.autonomous.rotateTo(angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
         }
+        else if(mineral == 1)
+        {
+            robot.autonomous.rotateTo(-90);
+            robot.autonomous.moveForwardBackward(goMid, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backMid, Mugurel.AutonomousMoveType.BACKWARD);
+        }
+        else if(mineral == 2)
+        {
+            robot.autonomous.rotateTo(-angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
+        }
+
+        robot.autonomous.rotateTo(0);
+
+        while(opModeIsActive()) { ; }
     }
 }

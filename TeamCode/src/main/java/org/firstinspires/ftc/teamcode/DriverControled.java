@@ -119,7 +119,7 @@ public class DriverControled extends LinearOpMode {
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
             if(duta.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   ext += 1.0;
-            robot.collector.extend(ext * 0.6);
+            robot.collector.extend(ext * 0.9);
             robot.lift.move(duta.getValue(MyGamepad.Axes.RIGHT_Y));
 
             if(duta.getRawValue(MyGamepad.Buttons.X))

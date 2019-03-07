@@ -60,12 +60,12 @@ public class AutonomousCrater extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double fromMiddle = 150;
+        double fromMiddle = 120;
         double betweenMinerals = 357;
         double inFrontOfMinerals = 350;
-        double scoreMinerals = 300;
+        double scoreMinerals = 320;
         double toWall = 650;
-        double toCrater = 1200;
+        double toCrater = 1400;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -105,19 +105,24 @@ public class AutonomousCrater extends LinearOpMode {
             distance = 2 * betweenMinerals;
         }
 
-        robot.autonomous.rotateTo(-90);
+        /*robot.autonomous.rotateTo(-90);
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.FORWARD);
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.BACKWARD);
+        robot.autonomous.rotateTo(0);*/
+
+        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.RIGHT);
+        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.LEFT);
         robot.autonomous.rotateTo(0);
 
         robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
         robot.autonomous.rotateTo(-135);
-        robot.autonomous.moveSensorDistance(robot.autonomous.left, 120);
+        robot.autonomous.moveSensorDistance(robot.autonomous.left, 150);
         robot.autonomous.rotateTo(-135);
 
         robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
 
-        sleep(500);
+        robot.autonomous.dropMarker();
+        sleep(200);
 
         robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
 

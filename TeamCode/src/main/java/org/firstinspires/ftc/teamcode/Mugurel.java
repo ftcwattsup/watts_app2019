@@ -312,10 +312,10 @@ public class Mugurel {
         public Servo box;
         public int posBox;
 
-        public double initPos = 0.25;
-        public double upPos = 0.15;
-        public double dropPos = 0.35;
-        public int rotTicks = 125;
+        public double initPos = 0.2;
+        public double upPos = 0.05;
+        public double dropPos = 0.3;
+        public int rotTicks = 100;
 
 
         Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _box) {
@@ -329,7 +329,7 @@ public class Mugurel {
             posBox = 1;
             rotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             rotRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            extender.setDirection(DcMotorSimple.Direction.REVERSE);
+            extender.setDirection(DcMotorSimple.Direction.FORWARD);
             rotLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rotRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -395,8 +395,8 @@ public class Mugurel {
         }
 
         public void setBoxPosition(int pos) {
-            if (pos == 0) box.setPosition(initPos);
-            if (pos == 1) box.setPosition(upPos);
+            if (pos == 0) box.setPosition(upPos);
+            if (pos == 1) box.setPosition(initPos);
             if (pos == 2) box.setPosition(dropPos);
         }
     }
@@ -452,6 +452,7 @@ public class Mugurel {
         public TFObjectDetector tfod;
         public double cameraX = 1280;
         public double middleX = cameraX / 2.0;
+        public double TOP = 250;
         public int last = -1;
         public IdentifierType type = IdentifierType.ALL;
 
@@ -462,6 +463,8 @@ public class Mugurel {
         public void setType(IdentifierType _type) {
             type = _type;
         }
+        public void setMid(double x) { middleX = x; }
+        public void setTop(double x) { TOP = x; }
 
         public void initVuforia() {
             /*
@@ -507,7 +510,7 @@ public class Mugurel {
 
         public boolean valid(Recognition r) {
             double ypos = ((r.getTop() + r.getBottom()) / 2.0);
-            if (ypos < 250.0) return false;
+            if (ypos < TOP) return false;
             return true;
         }
 
@@ -624,8 +627,12 @@ public class Mugurel {
     public class Autonomous {
         public BNO055IMU imu;
         public ModernRoboticsI2cRangeSensor back, left, right;
+        public Servo marker;
 
         public double myAngle;
+
+        public final double markerStart = 1.0;
+        public final double markerDown = 0.55;
 
         Autonomous() {
             ;
@@ -650,12 +657,21 @@ public class Mugurel {
             right = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.rightSensor);
             //right.setI2cAddress(I2cAddr.create8bit(0x28));
 
+            marker = hardwareMap.get(Servo.class, Config.marker);
+            marker.setPosition(markerStart);
+
             while (!imu.isGyroCalibrated()) {
                 telemetry.addData("Gyro", "Calibrating...");
                 telemetry.update();
+                if(!opmode.opModeIsActive())    return;
             }
             telemetry.addData("Gyro", "Calibrated");
             telemetry.update();
+        }
+
+        public void dropMarker()
+        {
+            marker.setPosition(markerDown);
         }
 
         public void land() {
@@ -771,7 +787,7 @@ public class Mugurel {
 
         public int distanceToTicksLeftRight(double dist) {
             //double ans = (dist * 1.85); //mm
-            double ans = (double) distanceToTicks(dist);
+            double ans = (double) distanceToTicks(dist) * 1.08;
             return (int) ans;
         }
 
@@ -794,7 +810,7 @@ public class Mugurel {
             runner.setTargetPositions(ticks, -ticks, -ticks, ticks);
             double startAngle = getHeading();
             move();
-            rotateTo(startAngle);
+            //rotateTo(startAngle);
         }
 
         public void move()
