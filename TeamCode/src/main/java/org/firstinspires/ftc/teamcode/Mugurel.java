@@ -403,7 +403,7 @@ public class Mugurel {
 
     public class Lifter {
         public DcMotor motor;
-        public final static int tickInterval = 5100;
+        public final static int tickInterval = 5300;
 
         Lifter(DcMotor _motor) {
             motor = _motor;
@@ -435,11 +435,18 @@ public class Mugurel {
             }
             motor.setPower(0.0);
 
-            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
         public void land() {
             goToPosition(tickInterval, 1.0);
+        }
+
+        public void stay() {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setTargetPosition(0);
+            motor.setPower(1.0);
         }
     }
 
@@ -639,6 +646,7 @@ public class Mugurel {
         }
 
         public void init() {
+            lift.stay();
             BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
             parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
             parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
