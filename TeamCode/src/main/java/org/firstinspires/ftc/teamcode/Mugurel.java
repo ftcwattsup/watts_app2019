@@ -403,7 +403,7 @@ public class Mugurel {
 
     public class Lifter {
         public DcMotor motor;
-        public final static int tickInterval = 5300;
+        public final static int tickInterval = 5636;
 
         Lifter(DcMotor _motor) {
             motor = _motor;
@@ -795,7 +795,7 @@ public class Mugurel {
 
         public int distanceToTicksLeftRight(double dist) {
             //double ans = (dist * 1.85); //mm
-            double ans = (double) distanceToTicks(dist) * 1.08;
+            double ans = (double) distanceToTicks(dist) * 1.02;
             return (int) ans;
         }
 
