@@ -309,23 +309,25 @@ public class Mugurel {
     public class Collector {
         public DcMotor rotLeft, rotRight, extender;
         public CRServo mat;
-        public Servo box;
+        public Servo boxL, boxR;
         public int posBox;
 
         public double initPos = 0.2;
         public double upPos = 0.05;
-        public double dropPos = 0.3;
-        public int rotTicks = 100;
+        public double dropPos = 0.35;
+        public int rotTicks = 90;
 
 
-        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _box) {
+        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _boxl, Servo _boxr) {
             rotLeft = _rotLeft;
             rotRight = _rotRight;
             extender = _extend;
             mat = _maturique;
-            box = _box;
+            boxR = _boxr;
+            boxL = _boxl;
             mat.setDirection(DcMotorSimple.Direction.FORWARD);
-            box.setPosition(initPos);
+            boxR.setPosition(initPos);
+            boxL.setPosition(1.0 - initPos);
             posBox = 1;
             rotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             rotRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -359,6 +361,19 @@ public class Mugurel {
             rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
         }
 
+        public void rotateTicks(int ticks) {
+            rotLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rotRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rotLeft.setTargetPosition(ticks);
+            rotRight.setTargetPosition(ticks);
+            rotLeft.setPower(1.0);
+            rotRight.setPower(1.0);
+            while(rotLeft.isBusy() && rotRight.isBusy()) {
+                if(!opmode.opModeIsActive())    return;
+            }
+        }
 
         public void rotate(double speed) {
             rotLeft.setPower(speed);
@@ -395,9 +410,9 @@ public class Mugurel {
         }
 
         public void setBoxPosition(int pos) {
-            if (pos == 0) box.setPosition(upPos);
-            if (pos == 1) box.setPosition(initPos);
-            if (pos == 2) box.setPosition(dropPos);
+            if (pos == 0) { boxR.setPosition(upPos); boxL.setPosition(1.0 - upPos); }
+            if (pos == 1) { boxR.setPosition(initPos); boxL.setPosition(1.0 - initPos); }
+            if (pos == 2) { boxR.setPosition(dropPos); boxL.setPosition(1.0 - dropPos); }
         }
     }
 
@@ -1077,7 +1092,8 @@ public class Mugurel {
                 hm.get(DcMotor.class, Config.rotRight),
                 hm.get(DcMotor.class, Config.extend),
                 hm.get(CRServo.class, Config.maturique),
-                hm.get(Servo.class, Config.box)
+                hm.get(Servo.class, Config.boxl),
+                hm.get(Servo.class, Config.boxr)
         );
         lift = new Lifter(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier();

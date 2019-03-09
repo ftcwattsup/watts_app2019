@@ -30,15 +30,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -54,61 +47,85 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Servo Test", group="Linear Opmode")
-@Disabled
-public class ServoTest extends LinearOpMode {
+@Autonomous(name="Autonomous Depot Fast", group="Linear Opmode")
+//@Disabled
+public class AutonomousDepotFast extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
-    //Autonomous automnomus=new Autonomous()
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
+        double goMid = 630;
+        double goSide = 700;
+        double angle = 30;
+        double backMid = 250;
+        double backSide = 300;
+        double toCrater = 1400;
+        int ticksRotation = 1600;
+
         robot = new Mugurel(hardwareMap);
-        Servo servo = hardwareMap.get(Servo.class, Config.boxl);
-        robot.initTelemetry(telemetry);
         robot.setOpmode(this);
+        robot.initTelemetry(telemetry);
+        robot.identifier.init();
+        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
+        //robot.identifier.setMid(750);
         robot.autonomous.init();
         telemetry.update();
 
         waitForStart();
         runtime.reset();
 
-        robot.afterStartInit();
-        robot.afterStartInit();
-        boolean a = false, b = false;
-        double add = 0.05;
+        robot.autonomous.land();
 
-        while (opModeIsActive())
+        robot.autonomous.rotateP(-10);
+
+        int mineral = 1;
+        mineral = robot.identifier.findGold();
+
+        //robot.autonomous.rotateTo(-90);
+
+        double distance = 850;
+        if(mineral == 0)
         {
-            double pos = servo.getPosition();
-            if(gamepad1.a)
-            {
-                if(!a)
-                {
-                    a = true;
-                    pos = pos + add;
-                    pos = Math.min(1.0, pos);
-                }
-            }
-            else    a = false;
-
-            if(gamepad1.b)
-            {
-                if(!b)
-                {
-                    b = true;
-                    pos = pos - add;
-                    pos = Math.max(0.0, pos);
-                }
-            }
-            else    b = false;
-
-            servo.setPosition(pos);
-
-            telemetry.addData("Pos", servo.getPosition());
-            telemetry.update();
+            robot.autonomous.rotateTo(angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
+            distance -= 100;
         }
+        else if(mineral == 1)
+        {
+            robot.autonomous.rotateTo(-90);
+            robot.autonomous.moveForwardBackward(goMid, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backMid, Mugurel.AutonomousMoveType.BACKWARD);
+        }
+        else if(mineral == 2)
+        {
+            robot.autonomous.rotateTo(-angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
+            distance += 100;
+        }
+
+        robot.autonomous.rotateTo(0);
+
+        robot.autonomous.moveForwardBackward(distance, Mugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.rotateTo(45);
+        robot.autonomous.moveSensorDistance(robot.autonomous.right, 160);
+        robot.autonomous.rotateTo(45);
+
+        robot.autonomous.moveSensorDistance(robot.autonomous.back, 600);
+
+        robot.autonomous.dropMarker();
+        sleep(200);
+
+        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
+
+        robot.collector.addTicks(ticksRotation);
+
+        while(opModeIsActive()) { ; }
     }
 }

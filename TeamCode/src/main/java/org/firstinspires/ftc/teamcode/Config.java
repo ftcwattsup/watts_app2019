@@ -15,7 +15,8 @@ public class Config
     public static final String lift = "lift";
 
     public static final String maturique = "mat";
-    public static final String box = "box";
+    public static final String boxl = "boxl";
+    public static final String boxr = "boxr";
     public static final String marker = "mrk";
 
     public static final String backSensor = "bck";

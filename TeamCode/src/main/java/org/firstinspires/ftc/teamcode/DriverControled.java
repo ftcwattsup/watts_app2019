@@ -114,7 +114,9 @@ public class DriverControled extends LinearOpMode {
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT))    robot.runner.move(1, 0, 0, modifier);
             else    robot.runner.move(gajux, gajuy, gajur, modifier);
 
-            robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y));
+            double rotModifier = 1.0;
+            if(duta.getRawValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)    modifier = 0.4;
+            robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y) * modifier);
 
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
