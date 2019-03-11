@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.SensorREVColorDistance;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -474,7 +475,7 @@ public class Mugurel {
         public TFObjectDetector tfod;
         public double cameraX = 1280;
         public double middleX = cameraX / 2.0;
-        public double TOP = 250;
+        public double TOP = 300;
         public int last = -1;
         public IdentifierType type = IdentifierType.ALL;
 
@@ -683,7 +684,9 @@ public class Mugurel {
             marker = hardwareMap.get(Servo.class, Config.marker);
             marker.setPosition(markerStart);
 
-            while (!imu.isGyroCalibrated()) {
+            ElapsedTime timer = new ElapsedTime();
+            timer.reset();
+            while (!imu.isGyroCalibrated() && timer.milliseconds() < 1000) {
                 telemetry.addData("Gyro", "Calibrating...");
                 telemetry.update();
                 if(!opmode.opModeIsActive())    return;

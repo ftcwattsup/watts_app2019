@@ -47,9 +47,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Crater Fast", group="Linear Opmode")
+@Autonomous(name="Autonomous Test", group="Linear Opmode")
 //@Disabled
-public class AutonomousCraterFast extends LinearOpMode {
+public class AutonomousTest extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -64,7 +64,7 @@ public class AutonomousCraterFast extends LinearOpMode {
         double backMid = 250;
         double backSide = 300;
         double toCrater = 1400;
-        int ticksRotation = -1600;
+        int ticksRotation = 1600;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -78,56 +78,13 @@ public class AutonomousCraterFast extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        robot.autonomous.land();
+        robot.collector.rotateTicks(-1600);
 
-        robot.autonomous.rotateP(-10);
-
-        int mineral = 1;
-        mineral = robot.identifier.findGold();
-
-        //robot.autonomous.rotateTo(-90);
-
-        double distance = 850;
-        if(mineral == 0)
+        while(opModeIsActive())
         {
-            robot.autonomous.rotateTo(angle - 90);
-            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
-            distance -= 100;
+            int id = robot.identifier.getGoldMineral();
+            telemetry.addData("WHere", id);
+            telemetry.update();
         }
-        else if(mineral == 1)
-        {
-            robot.autonomous.rotateTo(-90);
-            robot.autonomous.moveForwardBackward(goMid, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveForwardBackward(backMid, Mugurel.AutonomousMoveType.BACKWARD);
-        }
-        else if(mineral == 2)
-        {
-            robot.autonomous.rotateTo(-angle - 90);
-            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
-            distance += 100;
-        }
-
-        robot.autonomous.rotateTo(0);
-
-        sleep(750);
-
-        robot.autonomous.moveForwardBackward(distance, Mugurel.AutonomousMoveType.FORWARD);
-
-        robot.autonomous.rotateTo(-135);
-        robot.autonomous.moveSensorDistance(robot.autonomous.left, 160);
-        robot.autonomous.rotateTo(-135);
-
-        robot.autonomous.moveSensorDistance(robot.autonomous.back, 600);
-
-        robot.autonomous.dropMarker();
-        sleep(200);
-
-        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
-
-        robot.collector.rotateTicks(ticksRotation);
-
-        while(opModeIsActive()) { ; }
     }
 }
