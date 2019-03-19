@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -58,14 +60,6 @@ public class AutonomousTest extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double goMid = 630;
-        double goSide = 700;
-        double angle = 30;
-        double backMid = 250;
-        double backSide = 300;
-        double toCrater = 1400;
-        int ticksRotation = 1600;
-
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.initTelemetry(telemetry);
@@ -78,12 +72,13 @@ public class AutonomousTest extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        robot.collector.rotateTicks(-1600);
+        //robot.collector.rotateTicks(-1600);
 
         while(opModeIsActive())
         {
-            int id = robot.identifier.getGoldMineral();
-            telemetry.addData("WHere", id);
+            telemetry.addData("Back", robot.autonomous.back.getDistance(DistanceUnit.MM));
+            telemetry.addData("Right", robot.autonomous.right.getDistance(DistanceUnit.MM));
+            telemetry.addData("Left", robot.autonomous.left.getDistance(DistanceUnit.MM));
             telemetry.update();
         }
     }

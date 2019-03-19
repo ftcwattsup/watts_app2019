@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.Random;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -58,12 +60,12 @@ public class AutonomousCraterFast extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double goMid = 630;
-        double goSide = 700;
+        double goMid = 650;
+        double goSide = 730;
         double angle = 30;
         double backMid = 250;
         double backSide = 300;
-        double toCrater = 1400;
+        double toCrater = 1450;
         int ticksRotation = -1600;
 
         robot = new Mugurel(hardwareMap);
@@ -75,7 +77,8 @@ public class AutonomousCraterFast extends LinearOpMode {
         robot.autonomous.init();
         telemetry.update();
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.autonomous.land();
@@ -110,8 +113,6 @@ public class AutonomousCraterFast extends LinearOpMode {
         }
 
         robot.autonomous.rotateTo(0);
-
-        sleep(750);
 
         robot.autonomous.moveForwardBackward(distance, Mugurel.AutonomousMoveType.FORWARD);
 

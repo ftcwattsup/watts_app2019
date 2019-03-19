@@ -58,13 +58,13 @@ public class AutonomousDepotFast extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double goMid = 630;
-        double goSide = 700;
+        double goMid = 650;
+        double goSide = 730;
         double angle = 30;
         double backMid = 250;
         double backSide = 300;
-        double toCrater = 1400;
-        int ticksRotation = 1600;
+        double toCrater = 1450;
+        int ticksRotation = -1600;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -75,7 +75,8 @@ public class AutonomousDepotFast extends LinearOpMode {
         robot.autonomous.init();
         telemetry.update();
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.autonomous.land();

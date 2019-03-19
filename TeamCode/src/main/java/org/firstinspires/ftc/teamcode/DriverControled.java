@@ -74,13 +74,14 @@ public class DriverControled extends LinearOpMode {
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        boolean xPress = false, bPress = false, aPress = false, yPress = false;
+        boolean xPress = false, bPress = false;
         int matState = 0;
 
         while (opModeIsActive()) {
@@ -145,25 +146,6 @@ public class DriverControled extends LinearOpMode {
             }
             else bPress = false;
             robot.collector.collect(matState);
-
-            if(duta.getRawValue(MyGamepad.Buttons.Y))
-            {
-                if(!yPress)
-                {
-                    robot.collector.boxUp();
-                    yPress = true;
-                }
-            }
-            else yPress = false;
-            if(duta.getRawValue(MyGamepad.Buttons.A))
-            {
-                if(!aPress)
-                {
-                    robot.collector.boxDown();
-                    aPress = true;
-                }
-            }
-            else aPress = false;
 
             telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
             telemetry.addData("rotLeftTicks", robot.collector.rotLeft.getTargetPosition());

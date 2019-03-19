@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -48,7 +49,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Autonomous(name="Autonomous Minerals", group="Linear Opmode")
-//@Disabled
+@Disabled
 public class AutonomousMineral extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -71,7 +72,8 @@ public class AutonomousMineral extends LinearOpMode {
         robot.autonomous.init();
         telemetry.update();
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.autonomous.land();

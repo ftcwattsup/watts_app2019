@@ -277,7 +277,7 @@ public class Mugurel {
 
         public boolean isBusy() {
 
-            final int LIMIT = 5;
+            final int LIMIT = 10;
             int rem = getTicksDistance();
             if(rem <= LIMIT)    return false;
             return true;
@@ -310,26 +310,16 @@ public class Mugurel {
     public class Collector {
         public DcMotor rotLeft, rotRight, extender;
         public CRServo mat;
-        public Servo boxL, boxR;
-        public int posBox;
 
-        public double initPos = 0.2;
-        public double upPos = 0.05;
-        public double dropPos = 0.35;
         public int rotTicks = 90;
 
 
-        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique, Servo _boxl, Servo _boxr) {
+        Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique) {
             rotLeft = _rotLeft;
             rotRight = _rotRight;
             extender = _extend;
             mat = _maturique;
-            boxR = _boxr;
-            boxL = _boxl;
             mat.setDirection(DcMotorSimple.Direction.FORWARD);
-            boxR.setPosition(initPos);
-            boxL.setPosition(1.0 - initPos);
-            posBox = 1;
             rotLeft.setDirection(DcMotorSimple.Direction.FORWARD);
             rotRight.setDirection(DcMotorSimple.Direction.REVERSE);
             extender.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -397,24 +387,6 @@ public class Mugurel {
                 mat.setPower(-1.0);
             }
         }
-
-        public void boxUp() {
-            posBox++;
-            if (posBox > 2) posBox = 2;
-            setBoxPosition(posBox);
-        }
-
-        public void boxDown() {
-            posBox--;
-            if (posBox < 0) posBox = 0;
-            setBoxPosition(posBox);
-        }
-
-        public void setBoxPosition(int pos) {
-            if (pos == 0) { boxR.setPosition(upPos); boxL.setPosition(1.0 - upPos); }
-            if (pos == 1) { boxR.setPosition(initPos); boxL.setPosition(1.0 - initPos); }
-            if (pos == 2) { boxR.setPosition(dropPos); boxL.setPosition(1.0 - dropPos); }
-        }
     }
 
     public class Lifter {
@@ -457,6 +429,7 @@ public class Mugurel {
         public void land() {
             goToPosition(tickInterval, 1.0);
         }
+        public void hook() { goToPosition(-tickInterval, 1.0); }
 
         public void stay() {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -474,8 +447,9 @@ public class Mugurel {
         public VuforiaLocalizer vuforia;
         public TFObjectDetector tfod;
         public double cameraX = 1280;
+        public double cameraY = 720;
         public double middleX = cameraX / 2.0;
-        public double TOP = 300;
+        public double TOP = 175;
         public int last = -1;
         public IdentifierType type = IdentifierType.ALL;
 
@@ -772,7 +746,7 @@ public class Mugurel {
             double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
             double lastPower = 0.0;
             double maxDifference = 0.1;
-            double angleDecrease = 45.0;
+            double angleDecrease = 40.0;
             while (true) {
                 double myAngle = getHeading();
                 telemetry.addData("Heading", myAngle);
@@ -843,7 +817,7 @@ public class Mugurel {
         {
             double lastPower = 0.0;
             double maxDifference = 0.1;
-            int ticksDecrease = (int) (1.25 * ticksPerRevolution);
+            int ticksDecrease = (int) (1.0 * ticksPerRevolution);
             double angleStart = getHeading();
             while (runner.isBusy()) {
                 double power = 0.0;
@@ -1006,7 +980,7 @@ public class Mugurel {
 
             double lastPower = 0.0;
             double maxDifference = 0.05;
-            double decrease = 250;
+            double decrease = 175;
             while (runner.isBusy()) {
                 showDistances();
                 double now = sensor.getDistance(DistanceUnit.MM);
@@ -1094,9 +1068,7 @@ public class Mugurel {
                 hm.get(DcMotor.class, Config.rotLeft),
                 hm.get(DcMotor.class, Config.rotRight),
                 hm.get(DcMotor.class, Config.extend),
-                hm.get(CRServo.class, Config.maturique),
-                hm.get(Servo.class, Config.boxl),
-                hm.get(Servo.class, Config.boxr)
+                hm.get(CRServo.class, Config.maturique)
         );
         lift = new Lifter(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier();

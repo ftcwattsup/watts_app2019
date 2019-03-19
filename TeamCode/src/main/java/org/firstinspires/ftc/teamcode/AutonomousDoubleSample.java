@@ -30,11 +30,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
+import java.util.Random;
 
 
 /**
@@ -50,9 +49,9 @@ import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.DomFront;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Crater", group="Linear Opmode")
-@Disabled
-public class AutonomousCrater extends LinearOpMode {
+@Autonomous(name="Autonomous Double Sample", group="Linear Opmode")
+//@Disabled
+public class AutonomousDoubleSample extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -61,71 +60,90 @@ public class AutonomousCrater extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double fromMiddle = 120;
-        double betweenMinerals = 357;
-        double inFrontOfMinerals = 350;
-        double scoreMinerals = 320;
-        double toWall = 650;
-        double toCrater = 1400;
+        double goMid = 650;
+        double goSide = 730;
+        double angle = 30;
+        double backMid = 250;
+        double backSide = 300;
+        double toCrater = 1450;
+        int ticksRotation = -1600;
+
+        double goSecondLeft = 750;
+        double goSecondMid = 610;
+        double goSecondRight = 650;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.initTelemetry(telemetry);
         robot.identifier.init();
-        robot.identifier.setType(Mugurel.IdentifierType.LEFT_MID);
+        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
+        //robot.identifier.setMid(750);
         robot.autonomous.init();
         telemetry.update();
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.autonomous.land();
-        robot.autonomous.moveForwardBackward(fromMiddle, Mugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.rotateP(-10);
 
         int mineral = 1;
         mineral = robot.identifier.findGold();
 
-        robot.autonomous.rotateTo(-90);
-        robot.autonomous.moveForwardBackward(inFrontOfMinerals, Mugurel.AutonomousMoveType.FORWARD);
-        robot.autonomous.rotateTo(0);
+        //robot.autonomous.rotateTo(-90);
 
-        double distance = betweenMinerals + fromMiddle;
-        if(mineral == 0)    /// Left
+        double distance = 850;
+        if(mineral == 0)
         {
-            robot.autonomous.moveForwardBackward(betweenMinerals - fromMiddle, Mugurel.AutonomousMoveType.FORWARD);
-            distance = 0;
+            robot.autonomous.rotateTo(angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
+            distance -= 100;
         }
-        else if(mineral == 1)   /// Middle
+        else if(mineral == 1)
         {
-            robot.autonomous.moveForwardBackward(fromMiddle, Mugurel.AutonomousMoveType.BACKWARD);
-            distance = betweenMinerals;
+            robot.autonomous.rotateTo(-90);
+            robot.autonomous.moveForwardBackward(goMid, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backMid, Mugurel.AutonomousMoveType.BACKWARD);
         }
         else if(mineral == 2)
         {
-            robot.autonomous.moveForwardBackward(fromMiddle + betweenMinerals, Mugurel.AutonomousMoveType.BACKWARD);
-            distance = 2 * betweenMinerals;
+            robot.autonomous.rotateTo(-angle - 90);
+            robot.autonomous.moveForwardBackward(goSide, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.moveForwardBackward(backSide, Mugurel.AutonomousMoveType.BACKWARD);
+            distance += 100;
         }
 
-        /*robot.autonomous.rotateTo(-90);
-        robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.FORWARD);
-        robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.BACKWARD);
-        robot.autonomous.rotateTo(0);*/
-
-        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.RIGHT);
-        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.LEFT);
         robot.autonomous.rotateTo(0);
 
-        robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.moveForwardBackward(distance, Mugurel.AutonomousMoveType.FORWARD);
+
         robot.autonomous.rotateTo(-135);
-        robot.autonomous.moveSensorDistance(robot.autonomous.left, 150);
+        robot.autonomous.moveSensorDistance(robot.autonomous.left, 180);
         robot.autonomous.rotateTo(-135);
 
-        robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
+        robot.autonomous.moveSensorDistance(robot.autonomous.back, 375);
 
         robot.autonomous.dropMarker();
         sleep(200);
 
-        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
+        if(mineral == 0)
+        {
+            robot.autonomous.rotateTo(135);
+            robot.autonomous.moveForwardBackward(goSecondLeft, Mugurel.AutonomousMoveType.FORWARD);
+        }
+        else if(mineral == 1)
+        {
+            robot.autonomous.rotateTo(169);
+            robot.autonomous.moveForwardBackward(goSecondMid, Mugurel.AutonomousMoveType.FORWARD);
+        }
+        else if(mineral == 2)
+        {
+            robot.autonomous.rotateTo(-155);
+            robot.autonomous.moveForwardBackward(goSecondRight, Mugurel.AutonomousMoveType.FORWARD);
+        }
 
         while(opModeIsActive()) { ; }
     }

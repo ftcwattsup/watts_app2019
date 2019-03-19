@@ -66,7 +66,7 @@ public class ServoTest extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
 
         robot = new Mugurel(hardwareMap);
-        Servo servo = hardwareMap.get(Servo.class, Config.boxl);
+        Servo servo = hardwareMap.get(Servo.class, Config.marker);
         robot.initTelemetry(telemetry);
         robot.setOpmode(this);
         robot.autonomous.init();
