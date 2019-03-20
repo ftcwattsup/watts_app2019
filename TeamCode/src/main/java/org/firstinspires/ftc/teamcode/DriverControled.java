@@ -81,8 +81,11 @@ public class DriverControled extends LinearOpMode {
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        double upTicksRotate = 900;
         boolean xPress = false, bPress = false;
         int matState = 0;
+
+        boolean aPress = false, yPress = false;
 
         while (opModeIsActive()) {
 
@@ -115,9 +118,30 @@ public class DriverControled extends LinearOpMode {
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT))    robot.runner.move(1, 0, 0, modifier);
             else    robot.runner.move(gajux, gajuy, gajur, modifier);
 
-            double rotModifier = 1.0;
-            if(duta.getRawValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)    modifier = 0.4;
+            double rotModifier = 0.2;
+            if(duta.getRawValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)    modifier = 0.8;
             robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y) * modifier);
+
+            if(duta.getRawValue(MyGamepad.Buttons.Y) || duta.getRawValue(MyGamepad.Buttons.DPAD_UP))
+            {
+                if(!yPress)
+                {
+                    robot.collector.addTicks((int)upTicksRotate);
+                    yPress = true;
+                }
+            }
+            else
+                yPress = false;
+            if(duta.getRawValue(MyGamepad.Buttons.A) || duta.getRawValue(MyGamepad.Buttons.DPAD_DOWN))
+            {
+                if(!aPress)
+                {
+                    robot.collector.addTicks((int)-upTicksRotate);
+                    aPress = true;
+                }
+            }
+            else
+                aPress = false;
 
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;

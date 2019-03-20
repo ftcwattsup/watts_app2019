@@ -332,7 +332,7 @@ public class Mugurel {
         }
 
         public void afterInitStart() {
-            double power = 1.0;
+            double power = 0.33;
             rotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotLeft.setTargetPosition(0);
