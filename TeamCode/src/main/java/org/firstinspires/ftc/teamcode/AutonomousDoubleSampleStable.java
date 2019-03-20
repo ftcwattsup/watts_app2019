@@ -49,9 +49,9 @@ import java.util.Random;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Double Sample", group="Linear Opmode")
+@Autonomous(name="Autonomous Double Sample Stable", group="Linear Opmode")
 //@Disabled
-public class AutonomousDoubleSample extends LinearOpMode {
+public class AutonomousDoubleSampleStable extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -65,14 +65,12 @@ public class AutonomousDoubleSample extends LinearOpMode {
         double angle = 30;
         double backMid = 250;
         double backSide = 300;
-        double toCrater = 1700;
-        double toDepot = 750;
+        double toCrater = 1450;
         int ticksRotation = -1600;
 
         double goSecondLeft = 750;
         double goSecondMid = 610;
         double goSecondRight = 650;
-        double goOtherCrater = 1300;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -123,20 +121,10 @@ public class AutonomousDoubleSample extends LinearOpMode {
         robot.autonomous.moveForwardBackward(distance, Mugurel.AutonomousMoveType.FORWARD);
 
         robot.autonomous.rotateTo(-135);
-
-        if(mineral != 2)
-            robot.autonomous.moveSensorDistance(robot.autonomous.left, 180);
-        else
-            robot.autonomous.moveSensorDistance(robot.autonomous.left, 330);
+        robot.autonomous.moveSensorDistance(robot.autonomous.left, 180);
         robot.autonomous.rotateTo(-135);
 
-        if(mineral == 2)
-            robot.autonomous.moveForwardBackward(toDepot, Mugurel.AutonomousMoveType.BACKWARD);
-
-        if(mineral != 2)
-            robot.autonomous.moveSensorDistance(robot.autonomous.back, 375);
-        else
-            robot.autonomous.moveSensorDistance(robot.autonomous.back, 500);
+        robot.autonomous.moveSensorDistance(robot.autonomous.back, 375);
 
         robot.autonomous.dropMarker();
         sleep(200);
@@ -145,23 +133,16 @@ public class AutonomousDoubleSample extends LinearOpMode {
         {
             robot.autonomous.rotateTo(135);
             robot.autonomous.moveForwardBackward(goSecondLeft, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveSensorDistance(robot.autonomous.right, 150);
-            robot.autonomous.moveForwardBackward(goOtherCrater, Mugurel.AutonomousMoveType.FORWARD);
         }
         else if(mineral == 1)
         {
             robot.autonomous.rotateTo(169);
             robot.autonomous.moveForwardBackward(goSecondMid, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveForwardBackward(goSecondMid, Mugurel.AutonomousMoveType.BACKWARD);
-            robot.autonomous.rotateTo(-135);
-            robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
         }
         else if(mineral == 2)
         {
-            //robot.autonomous.moveForwardBackward(goSecondRight, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveSensorDistance(robot.autonomous.left, 130);
-            robot.autonomous.rotateTo(-135);
-            robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
+            robot.autonomous.rotateTo(-155);
+            robot.autonomous.moveForwardBackward(goSecondRight, Mugurel.AutonomousMoveType.FORWARD);
         }
 
         while(opModeIsActive()) { ; }

@@ -64,6 +64,7 @@ public class AutonomousDepotFast extends LinearOpMode {
         double backMid = 250;
         double backSide = 300;
         double toCrater = 1450;
+        double toDepot = 600;
         int ticksRotation = -1600;
 
         robot = new Mugurel(hardwareMap);
@@ -118,6 +119,7 @@ public class AutonomousDepotFast extends LinearOpMode {
         robot.autonomous.moveSensorDistance(robot.autonomous.right, 160);
         robot.autonomous.rotateTo(45);
 
+        robot.autonomous.moveForwardBackward(toDepot, Mugurel.AutonomousMoveType.BACKWARD);
         robot.autonomous.moveSensorDistance(robot.autonomous.back, 600);
 
         robot.autonomous.dropMarker();
@@ -125,7 +127,7 @@ public class AutonomousDepotFast extends LinearOpMode {
 
         robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
 
-        robot.collector.addTicks(ticksRotation);
+        //robot.collector.rotateTicks(ticksRotation);
 
         while(opModeIsActive()) { ; }
     }
