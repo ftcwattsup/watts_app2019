@@ -120,6 +120,8 @@ public class DriverControled extends LinearOpMode {
 
             double rotModifier = 0.2;
             if(duta.getRawValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)    modifier = 0.8;
+            if(duta.getRawValue(MyGamepad.Axes.LEFT_Y)<0)
+                modifier *= 0.8;
             robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y) * modifier);
 
             if(duta.getRawValue(MyGamepad.Buttons.Y) || duta.getRawValue(MyGamepad.Buttons.DPAD_UP))
