@@ -29,16 +29,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -54,9 +48,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Controled", group="Linear Opmode")
+@TeleOp(name="Driver Controled Depot", group="Linear Opmode")
 //@Disabled
-public class DriverControled extends LinearOpMode {
+public class DriverControledDepot extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -80,12 +74,12 @@ public class DriverControled extends LinearOpMode {
 
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        robot.runner.setFace(Math.PI);
+        robot.runner.setFace(0);
 
         double upTicksRotate = 950;
         double downTicksRotate = -1250;
         double dDownTicks = -300;
-        double landerTicks = 430;
+        double landerTicks = 540;
         double liftTicks = -5300;
         boolean xPress = false, bPress = false, ddownPress = false, dupPress = false;
         int matState = 0;

@@ -312,7 +312,8 @@ public class Mugurel {
         public CRServo mat;
 
         public int rotTicks = 90;
-
+        public double initialPower = 0.33;
+        public boolean lastTicksWithPower = false;
 
         Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique) {
             rotLeft = _rotLeft;
@@ -332,7 +333,7 @@ public class Mugurel {
         }
 
         public void afterInitStart() {
-            double power = 0.33;
+            double power = initialPower;
             rotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotLeft.setTargetPosition(0);
@@ -348,8 +349,40 @@ public class Mugurel {
         }
 
         public void addTicks(int ticks) {
+            addTicksint(ticks);
+            //rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
+            //rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
+        }
+
+        public void addTicksint(int ticks) {
+            if(Math.abs(ticks) < 10)  return;
+            if(lastTicksWithPower)
+            {
+                rotLeft.setPower(initialPower);
+                rotRight.setPower(initialPower);
+            }
+            lastTicksWithPower = false;
             rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
             rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
+        }
+
+        public void addTicksintWithPower(int ticks, double power) {
+            lastTicksWithPower = true;
+            rotLeft.setPower(initialPower * power);
+            rotLeft.setPower(initialPower * power);
+            rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
+            rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
+            /*while(rotLeft.isBusy() && rotRight.isBusy())
+            {
+                if(!opmode.opModeIsActive())
+                {
+                    rotLeft.setPower(0);
+                    rotRight.setPower(0);
+                    return;
+                }
+            }
+            rotLeft.setPower(initialPower);
+            rotRight.setPower(initialPower);*/
         }
 
         public void rotateTicks(int ticks) {
@@ -361,14 +394,20 @@ public class Mugurel {
             rotRight.setTargetPosition(ticks);
             rotLeft.setPower(1.0);
             rotRight.setPower(1.0);
-            while(rotLeft.isBusy() && rotRight.isBusy()) {
-                if(!opmode.opModeIsActive())    return;
-            }
+            //while(rotLeft.isBusy() && rotRight.isBusy()) {
+            //    if(!opmode.opModeIsActive())    return;
+            //}
         }
 
         public void rotate(double speed) {
             rotLeft.setPower(speed);
             rotRight.setPower(speed);
+        }
+
+        public void stopRotation()
+        {
+            rotLeft.setTargetPosition(rotLeft.getCurrentPosition());
+            rotRight.setTargetPosition(rotRight.getCurrentPosition());
         }
 
         public void extend(double speed) {
@@ -382,9 +421,12 @@ public class Mugurel {
             } else if (direction == 1) {
                 mat.getController().pwmEnable();
                 mat.setPower(1.0);
-            } else {
+            } else if(direction == -1) {
                 mat.getController().pwmEnable();
                 mat.setPower(-1.0);
+            } else if(direction == 40) {
+                mat.getController().pwmEnable();
+                mat.setPower(0.0);
             }
         }
     }
@@ -405,7 +447,25 @@ public class Mugurel {
         }
 
         public void move(double speed) {
+            if(Math.abs(speed) < 0.1)
+            {
+                if(motor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER)  return;
+                motor.setPower(speed);
+                return;
+            }
+            if(motor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER)
+            {
+                motor.setPower(0);
+                motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            }
             motor.setPower(speed);
+        }
+
+        public void goToPositionNoWait(int ticks, double power)
+        {
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setTargetPosition(ticks);
+            motor.setPower(power);
         }
 
         public void goToPosition(int ticks, double power) {
@@ -449,7 +509,7 @@ public class Mugurel {
         public double cameraX = 1280;
         public double cameraY = 720;
         public double middleX = cameraX / 2.0;
-        public double TOP = 175;
+        public double TOP = 250;
         public int last = -1;
         public IdentifierType type = IdentifierType.ALL;
 
@@ -508,6 +568,7 @@ public class Mugurel {
         public boolean valid(Recognition r) {
             double ypos = ((r.getTop() + r.getBottom()) / 2.0);
             if (ypos < TOP) return false;
+            if(getHeight(r) < 75)   return false;
             return true;
         }
 
@@ -517,6 +578,11 @@ public class Mugurel {
                 if (valid(r))
                     list.add(r);
             return list;
+        }
+
+        public double getHeight(Recognition rec)
+        {
+            return ((rec.getBottom() - rec.getTop()));
         }
 
         public double getPosition(Recognition rec) {
@@ -576,9 +642,15 @@ public class Mugurel {
                     }
                 return -1;
             } else if (type == IdentifierType.MID_RIGHT) {
+                //telemetry.setAutoClear(false);
                 int goldcnt = 0;
                 for (Recognition rec : recognitions)
-                    if (rec.getLabel().equals(LABEL_GOLD_MINERAL)) goldcnt++;
+                    if (rec.getLabel().equals(LABEL_GOLD_MINERAL))
+                    {
+                        goldcnt++;
+                        //telemetry.addData("Gold height", getHeight(rec));
+
+                    }
                 if (goldcnt == 0) return 0;
                 if (goldcnt > 1) return -1;
                 for (Recognition rec : recognitions)

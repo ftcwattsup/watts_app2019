@@ -65,14 +65,14 @@ public class AutonomousDoubleSample extends LinearOpMode {
         double angle = 30;
         double backMid = 250;
         double backSide = 300;
-        double toCrater = 1700;
+        double toCrater = 1500;
         double toDepot = 750;
         int ticksRotation = -1600;
 
         double goSecondLeft = 750;
         double goSecondMid = 610;
         double goSecondRight = 650;
-        double goOtherCrater = 1300;
+        double goOtherCrater = 1050;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -125,7 +125,7 @@ public class AutonomousDoubleSample extends LinearOpMode {
         robot.autonomous.rotateTo(-135);
 
         if(mineral != 2)
-            robot.autonomous.moveSensorDistance(robot.autonomous.left, 180);
+            robot.autonomous.moveSensorDistance(robot.autonomous.left, 130);
         else
             robot.autonomous.moveSensorDistance(robot.autonomous.left, 330);
         robot.autonomous.rotateTo(-135);
@@ -145,7 +145,8 @@ public class AutonomousDoubleSample extends LinearOpMode {
         {
             robot.autonomous.rotateTo(135);
             robot.autonomous.moveForwardBackward(goSecondLeft, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveSensorDistance(robot.autonomous.right, 150);
+            robot.autonomous.moveSensorDistance(robot.autonomous.right, 130);
+            robot.collector.rotateTicks(ticksRotation);
             robot.autonomous.moveForwardBackward(goOtherCrater, Mugurel.AutonomousMoveType.FORWARD);
         }
         else if(mineral == 1)
@@ -154,13 +155,15 @@ public class AutonomousDoubleSample extends LinearOpMode {
             robot.autonomous.moveForwardBackward(goSecondMid, Mugurel.AutonomousMoveType.FORWARD);
             robot.autonomous.moveForwardBackward(goSecondMid, Mugurel.AutonomousMoveType.BACKWARD);
             robot.autonomous.rotateTo(-135);
+            robot.collector.rotateTicks(ticksRotation);
             robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
         }
         else if(mineral == 2)
         {
             //robot.autonomous.moveForwardBackward(goSecondRight, Mugurel.AutonomousMoveType.FORWARD);
-            robot.autonomous.moveSensorDistance(robot.autonomous.left, 130);
+            robot.autonomous.moveSensorDistance(robot.autonomous.left, 115);
             robot.autonomous.rotateTo(-135);
+            robot.collector.rotateTicks(ticksRotation);
             robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
         }
 
