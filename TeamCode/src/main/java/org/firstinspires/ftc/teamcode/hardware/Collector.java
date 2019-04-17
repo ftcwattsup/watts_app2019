@@ -15,10 +15,8 @@ public class Collector {
     public DcMotor rot, extender, mat;
 
     public int rotTicks = 50;
-    public double decreaseTicks = 1000;
     public double defaultPower = 0.9;
-    public double minPower = 0.;
-    public double myPower = 0.0;
+    public double minPower = 0.2;
 
     public double matRevolution = 100;
 
@@ -55,20 +53,10 @@ public class Collector {
     /**
      * Rotation
      */
+
     public void addTicksGamepad(double y) {
         if(Math.abs(y) < 0.001) return;
         addTicks((int)(y * rotTicks));
-    }
-
-    public boolean isBusy() { return rot.isBusy(); }
-
-    public void updatePower() {
-        double power = 1.0;
-        double dist = Math.abs(rot.getCurrentPosition() - rot.getTargetPosition());
-        if(dist < decreaseTicks)
-            power = (dist / decreaseTicks);
-        power = Math.max(power, minPower);
-        rot.setPower(power * myPower);
     }
 
     public void addTicks(int ticks) {
@@ -76,10 +64,8 @@ public class Collector {
     }
 
     public void addTicksWithPower(int ticks, double power) {
-        rot.setPower(0);
+        rot.setPower(power);
         rot.setTargetPosition(rot.getCurrentPosition() + ticks);
-        myPower = power;
-        updatePower();
     }
 
     public void rotateTicks(int ticks) {
