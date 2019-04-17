@@ -313,6 +313,7 @@ public class Mugurel {
 
         public int rotTicks = 90;
         public double initialPower = 0.33;
+        public double newratio = 1.0;
         public boolean lastTicksWithPower = false;
 
         Collector(DcMotor _rotLeft, DcMotor _rotRight, DcMotor _extend, CRServo _maturique) {
@@ -333,7 +334,7 @@ public class Mugurel {
         }
 
         public void afterInitStart() {
-            double power = initialPower;
+            double power = initialPower * newratio;
             rotLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rotLeft.setTargetPosition(0);
@@ -358,8 +359,8 @@ public class Mugurel {
             if(Math.abs(ticks) < 10)  return;
             if(lastTicksWithPower)
             {
-                rotLeft.setPower(initialPower);
-                rotRight.setPower(initialPower);
+                rotLeft.setPower(initialPower * newratio);
+                rotRight.setPower(initialPower * newratio);
             }
             lastTicksWithPower = false;
             rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
@@ -368,8 +369,8 @@ public class Mugurel {
 
         public void addTicksintWithPower(int ticks, double power) {
             lastTicksWithPower = true;
-            rotLeft.setPower(initialPower * power);
-            rotLeft.setPower(initialPower * power);
+            rotLeft.setPower(initialPower * power * newratio);
+            rotLeft.setPower(initialPower * power * newratio);
             rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
             rotRight.setTargetPosition(rotRight.getTargetPosition() + ticks);
             /*while(rotLeft.isBusy() && rotRight.isBusy())

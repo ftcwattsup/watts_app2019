@@ -82,10 +82,11 @@ public class DriverControled extends LinearOpMode {
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.runner.setFace(Math.PI);
 
-        double upTicksRotate = 950;
-        double downTicksRotate = -1250;
-        double dDownTicks = -300;
-        double landerTicks = 430;
+        double newratio = 131.0 / 60.0;
+        double upTicksRotate = 950 * newratio;
+        double downTicksRotate = -1250 * newratio;
+        double dDownTicks = -300 * newratio;
+        double landerTicks = 300 * newratio;
         double liftTicks = -5300;
         boolean xPress = false, bPress = false, ddownPress = false, dupPress = false;
         int matState = 0;
@@ -174,7 +175,7 @@ public class DriverControled extends LinearOpMode {
             {
                 if(!dupPress)
                 {
-                    robot.collector.addTicksintWithPower((int)landerTicks, 0.3);
+                    robot.collector.addTicksintWithPower((int)landerTicks, 0.4);
                     dupPress = true;
                 }
             }
