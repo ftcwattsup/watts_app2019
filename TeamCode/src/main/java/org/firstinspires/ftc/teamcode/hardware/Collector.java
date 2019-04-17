@@ -7,10 +7,23 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class Collector {
 
     public Telemetry telemetry;
     public LinearOpMode opmode;
+
+    class RotationOperation {
+        public int ticks = 0;
+        public double power = 0;
+
+        public RotationOperation() { ; }
+        public RotationOperation(int _ticks, double _power) { ticks = _ticks; power = _power; }
+    }
+
+    Queue<RotationOperation> queue;
 
     public DcMotor rot, extender, mat;
 
@@ -38,6 +51,8 @@ public class Collector {
         mat.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         matRevolution = mat.getMotorType().getTicksPerRev();
+
+        queue = new LinkedList<RotationOperation>();
     }
 
     public void afterInitStart() {
@@ -54,8 +69,18 @@ public class Collector {
      * Rotation
      */
 
+    public void update()
+    {
+        if(rot.isBusy())    return;
+        if(queue.isEmpty()) return;
+        RotationOperation op = queue.peek();
+        queue.remove();
+        addTicksWithPower(op);
+    }
+
     public void addTicksGamepad(double y) {
         if(Math.abs(y) < 0.001) return;
+        stopRotation();
         addTicks((int)(y * rotTicks));
     }
 
@@ -64,8 +89,10 @@ public class Collector {
     }
 
     public void addTicksWithPower(int ticks, double power) {
-        rot.setPower(power);
-        rot.setTargetPosition(rot.getCurrentPosition() + ticks);
+        //rot.setPower(power);
+        //rot.setTargetPosition(rot.getCurrentPosition() + ticks);
+
+        queue.add(new RotationOperation(ticks, power));
     }
 
     public void rotateTicks(int ticks) {
@@ -78,8 +105,28 @@ public class Collector {
         //}
     }
 
+    public void addTicksWithPower(RotationOperation op) {
+        int ticks = op.ticks;
+        double power = op.power;
+
+        rot.setPower(power);
+        rot.setTargetPosition(rot.getCurrentPosition() + ticks);
+    }
+
     public void stopRotation() {
         rot.setTargetPosition(rot.getCurrentPosition());
+        while(!queue.isEmpty()) queue.remove();
+    }
+
+    public void noEncoder(double y) {
+        if(Math.abs(y) < 0.001) {
+            rot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rot.setTargetPosition(rot.getCurrentPosition());
+        }
+        else {
+            rot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            rot.setPower(y);
+        }
     }
 
     /**
