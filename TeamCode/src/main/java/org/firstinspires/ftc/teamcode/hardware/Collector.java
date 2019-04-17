@@ -14,10 +14,11 @@ public class Collector {
 
     public DcMotor rot, extender, mat;
 
-    public int rotTicks = 90;
-    public double initialPower = 0.33;
-    public double newratio = 1.0;
-    public boolean lastTicksWithPower = false;
+    public int rotTicks = 50;
+    public double decreaseTicks = 1000;
+    public double defaultPower = 0.9;
+    public double minPower = 0.;
+    public double myPower = 0.0;
 
     public double matRevolution = 100;
 
@@ -26,9 +27,9 @@ public class Collector {
         extender = _extend;
         mat = _maturique;
 
-        mat.setDirection(DcMotorSimple.Direction.FORWARD);
-        rot.setDirection(DcMotorSimple.Direction.REVERSE);
-        extender.setDirection(DcMotorSimple.Direction.FORWARD);
+        mat.setDirection(DcMotorSimple.Direction.REVERSE);
+        rot.setDirection(DcMotorSimple.Direction.FORWARD);
+        extender.setDirection(DcMotorSimple.Direction.REVERSE);
 
         rot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -37,55 +38,48 @@ public class Collector {
         rot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         extender.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mat.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        matRevolution = mat.getMotorType().getTicksPerRev();
     }
 
     public void afterInitStart() {
-        double power = initialPower * newratio;
+        double power = defaultPower;
         rot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rot.setTargetPosition(0);
         rot.setPower(power);
 
         extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        mat.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     /**
      * Rotation
      */
-    public void addTicks(double y) {
-        addTicks((int) (y * rotTicks));
+    public void addTicksGamepad(double y) {
+        if(Math.abs(y) < 0.001) return;
+        addTicks((int)(y * rotTicks));
+    }
+
+    public boolean isBusy() { return rot.isBusy(); }
+
+    public void updatePower() {
+        double power = 1.0;
+        double dist = Math.abs(rot.getCurrentPosition() - rot.getTargetPosition());
+        if(dist < decreaseTicks)
+            power = (dist / decreaseTicks);
+        power = Math.max(power, minPower);
+        rot.setPower(power * myPower);
     }
 
     public void addTicks(int ticks) {
-        addTicksint(ticks);
-        //rotLeft.setTargetPosition(rotLeft.getTargetPosition() + ticks);
-        //rot.setTargetPosition(rot.getTargetPosition() + ticks);
+        addTicksWithPower(ticks, defaultPower);
     }
 
-    public void addTicksint(int ticks) {
-        if(Math.abs(ticks) < 10)  return;
-        if(lastTicksWithPower)
-        {
-            rot.setPower(initialPower * newratio);
-        }
-        lastTicksWithPower = false;
-        rot.setTargetPosition(rot.getTargetPosition() + ticks);
-    }
-
-    public void addTicksintWithPower(int ticks, double power) {
-        lastTicksWithPower = true;
-        rot.setPower(initialPower * power * newratio);
-        rot.setTargetPosition(rot.getTargetPosition() + ticks);
-        /*while(rotLeft.isBusy() && rot.isBusy())
-        {
-            if(!opmode.opModeIsActive())
-            {
-                rotLeft.setPower(0);
-                rot.setPower(0);
-                return;
-            }
-        }
-        rotLeft.setPower(initialPower);
-        rot.setPower(initialPower);*/
+    public void addTicksWithPower(int ticks, double power) {
+        rot.setPower(0);
+        rot.setTargetPosition(rot.getCurrentPosition() + ticks);
+        myPower = power;
+        updatePower();
     }
 
     public void rotateTicks(int ticks) {
@@ -96,10 +90,6 @@ public class Collector {
         //while(rotLeft.isBusy() && rot.isBusy()) {
         //    if(!opmode.opModeIsActive())    return;
         //}
-    }
-
-    public void rotate(double speed) {
-        rot.setPower(speed);
     }
 
     public void stopRotation() {
@@ -153,7 +143,7 @@ public class Collector {
         mat.setPower(1.0);
     }
 
-    void showTelemetry() {
+    public void showTelemetry() {
         telemetry.addData("rot current", rot.getCurrentPosition());
         telemetry.addData("rot target", rot.getTargetPosition());
         telemetry.update();

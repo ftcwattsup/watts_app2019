@@ -78,7 +78,7 @@ public class DriverControled extends LinearOpMode {
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.runner.setFace(Math.PI);
 
-        double newratio = 131.0 / 60.0;
+        double newratio = 1.0;
         double upTicksRotate = 950 * newratio;
         double downTicksRotate = -1250 * newratio;
         double dDownTicks = -300 * newratio;
@@ -99,10 +99,10 @@ public class DriverControled extends LinearOpMode {
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            if(gaju.getValue(MyGamepad.Buttons.Y) == true)    robot.runner.setFace(0);
-            else if(gaju.getValue(MyGamepad.Buttons.A) == true)    robot.runner.setFace(Math.PI);
-            else if(gaju.getValue(MyGamepad.Buttons.X) == true)    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.B) == true)    robot.runner.setFace(-Math.PI / 2.0);
+            if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(0);
+            else if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(Math.PI);
+            else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(Math.PI / 2.0);
+            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(-Math.PI / 2.0);
 
             double modifier = 1.0;
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    modifier = 0.3;
@@ -128,53 +128,40 @@ public class DriverControled extends LinearOpMode {
 
             robot.lift.move(duta.getValue(MyGamepad.Axes.RIGHT_Y));
 
-            double rotModifier = 0.18;
-            //if(duta.getRawValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)    modifier = 0.8;
-            if(duta.getRawValue(MyGamepad.Axes.LEFT_Y)<0)
-                modifier *= 0.9;
-            robot.collector.addTicks(duta.getValue(MyGamepad.Axes.LEFT_Y) * modifier);
+            if(robot.collector.isBusy()) robot.collector.updatePower();
+            else {
+                robot.collector.addTicksGamepad(duta.getValue(MyGamepad.Axes.LEFT_Y));
 
-            if(duta.getRawValue(MyGamepad.Buttons.Y))
-            {
-                if(!yPress)
-                {
-                    robot.collector.addTicksint((int)upTicksRotate);
-                    yPress = true;
-                }
-            }
-            else
-                yPress = false;
-            if(duta.getRawValue(MyGamepad.Buttons.A))
-            {
-                if(!aPress)
-                {
-                    robot.collector.addTicksint((int)downTicksRotate);
-                    aPress = true;
-                }
-            }
-            else
-                aPress = false;
-            if(duta.getValue(MyGamepad.Buttons.DPAD_DOWN))
-            {
-                if(!ddownPress)
-                {
-                    robot.collector.addTicksint((int)dDownTicks);
-                    ddownPress = true;
-                }
-            }
-            else
-                ddownPress = false;
+                if (duta.getRawValue(MyGamepad.Buttons.Y)) {
+                    if (!yPress) {
+                        robot.collector.addTicks((int) upTicksRotate);
+                        yPress = true;
+                    }
+                } else
+                    yPress = false;
+                if (duta.getRawValue(MyGamepad.Buttons.A)) {
+                    if (!aPress) {
+                        robot.collector.addTicksWithPower((int) downTicksRotate, 0.5);
+                        aPress = true;
+                    }
+                } else
+                    aPress = false;
+                if (duta.getValue(MyGamepad.Buttons.DPAD_DOWN)) {
+                    if (!ddownPress) {
+                        robot.collector.addTicksWithPower((int) dDownTicks, 0.5);
+                        ddownPress = true;
+                    }
+                } else
+                    ddownPress = false;
 
-            if(duta.getValue(MyGamepad.Buttons.DPAD_UP))
-            {
-                if(!dupPress)
-                {
-                    robot.collector.addTicksintWithPower((int)landerTicks, 0.4);
-                    dupPress = true;
-                }
+                if (duta.getValue(MyGamepad.Buttons.DPAD_UP)) {
+                    if (!dupPress) {
+                        robot.collector.addTicksWithPower((int) landerTicks, 0.4);
+                        dupPress = true;
+                    }
+                } else
+                    dupPress = false;
             }
-            else
-                dupPress = false;
 
             if(duta.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)
                 robot.collector.stopRotation();
@@ -208,6 +195,7 @@ public class DriverControled extends LinearOpMode {
             if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.2);
             else robot.collector.collect((double)matState * 1.0);
 
+            robot.collector.showTelemetry();
             telemetry.update();
         }
     }
