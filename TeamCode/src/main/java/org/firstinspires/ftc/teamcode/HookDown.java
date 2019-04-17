@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.hardware.AutoMugurel;
 import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
@@ -54,24 +55,22 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 public class HookDown extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
-    private Mugurel robot;
+    private AutoMugurel robot;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
 
-        robot = new Mugurel(hardwareMap);
+        robot = new AutoMugurel(hardwareMap);
         robot.setOpmode(this);
-        robot.initTelemetry(telemetry);
+        robot.setTelemetry(telemetry);
         telemetry.update();
 
         waitForStart();
         runtime.reset();
 
         robot.lift.hook();
-
-        //robot.collector.rotateTicks(-1600);
 
         while(opModeIsActive())
         {

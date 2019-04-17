@@ -15,11 +15,10 @@ public class Runner {
     public double faceAngle;
     public final double wheelAngle = Math.PI / 4.0;
 
-    public double ticksPerRevolution;
-
     /**
      * Motor functions
      */
+
     public class MotorPowers {
         public double lf, lb, rf, rb;
 
@@ -66,7 +65,7 @@ public class Runner {
         }
     }
 
-    Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb) {
+    public Runner(DcMotor lf, DcMotor rf, DcMotor lb, DcMotor rb) {
         leftFront = lf;
         rightFront = rf;
         leftBack = lb;
@@ -82,7 +81,6 @@ public class Runner {
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        ticksPerRevolution = leftFront.getMotorType().getTicksPerRev();
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
@@ -209,7 +207,11 @@ public class Runner {
     public void setFace(double angle) {
         faceAngle = angle;
     }
+    public void setFaceDegrees(double angle) { setFace(Math.toRadians(angle)); }
 
+    /**
+     * To position (autonomous)
+     */
     public void reset(DcMotor.RunMode mode) {
         setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setMode(mode);
@@ -256,8 +258,6 @@ public class Runner {
     }
 
     public void showPositions() {
-        telemetry.addData("TicksPerRev", ticksPerRevolution);
-
         telemetry.addData("lf current", leftFront.getCurrentPosition());
         telemetry.addData("rf current", rightFront.getCurrentPosition());
         telemetry.addData("lb current", leftBack.getCurrentPosition());

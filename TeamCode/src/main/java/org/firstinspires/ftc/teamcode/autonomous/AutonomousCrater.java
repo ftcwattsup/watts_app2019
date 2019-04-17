@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -50,9 +50,9 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Minerals", group="Linear Opmode")
+@Autonomous(name="Autonomous Crater", group="Linear Opmode")
 @Disabled
-public class AutonomousMineral extends LinearOpMode {
+public class AutonomousCrater extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -61,10 +61,12 @@ public class AutonomousMineral extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        double fromMiddle = 150;
-        double betweenMinerals = 356;
+        double fromMiddle = 120;
+        double betweenMinerals = 357;
         double inFrontOfMinerals = 350;
-        double scoreMinerals = 300;
+        double scoreMinerals = 320;
+        double toWall = 650;
+        double toCrater = 1400;
 
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
@@ -74,8 +76,7 @@ public class AutonomousMineral extends LinearOpMode {
         robot.autonomous.init();
         telemetry.update();
 
-        //waitForStart();
-        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
+        waitForStart();
         runtime.reset();
 
         robot.autonomous.land();
@@ -105,10 +106,26 @@ public class AutonomousMineral extends LinearOpMode {
             distance = 2 * betweenMinerals;
         }
 
-        robot.autonomous.rotateTo(-90);
+        /*robot.autonomous.rotateTo(-90);
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.FORWARD);
         robot.autonomous.moveForwardBackward(scoreMinerals, Mugurel.AutonomousMoveType.BACKWARD);
+        robot.autonomous.rotateTo(0);*/
+
+        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.RIGHT);
+        robot.autonomous.moveLeftRight(scoreMinerals, Mugurel.AutonomousMoveType.LEFT);
         robot.autonomous.rotateTo(0);
+
+        robot.autonomous.moveForwardBackward(toWall + distance, Mugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.rotateTo(-135);
+        robot.autonomous.moveSensorDistance(robot.autonomous.left, 150);
+        robot.autonomous.rotateTo(-135);
+
+        robot.autonomous.moveSensorDistance(robot.autonomous.back, 400);
+
+        robot.autonomous.dropMarker();
+        sleep(200);
+
+        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
 
         while(opModeIsActive()) { ; }
     }

@@ -27,13 +27,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
@@ -50,9 +49,9 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Test", group="Linear Opmode")
+@Autonomous(name="Autonomous Depot No Mineral", group="Linear Opmode")
 //@Disabled
-public class AutonomousTest extends LinearOpMode {
+public class AutonomousDepotNoMineral extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -61,28 +60,47 @@ public class AutonomousTest extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
+        double toWall = 1100;
+        double toCrater = 1380;
+        double toDepot = 1000;
+        int ticksRotation = -1600;
+
+        double qtime = 5000;
+
         robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.initTelemetry(telemetry);
-        robot.identifier.init();
-        robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
+        //robot.identifier.init();
+        //robot.identifier.setType(Mugurel.IdentifierType.MID_RIGHT);
         //robot.identifier.setMid(750);
         robot.autonomous.init();
         telemetry.update();
 
-        waitForStart();
+        //waitForStart();
+        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
-        //robot.collector.rotateTicks(-1600);
+        robot.autonomous.land();
 
-        while(opModeIsActive())
-        {
-            telemetry.addData("Back", robot.autonomous.back.getDistance(DistanceUnit.MM));
-            telemetry.addData("Right", robot.autonomous.right.getDistance(DistanceUnit.MM));
-            telemetry.addData("Left", robot.autonomous.left.getDistance(DistanceUnit.MM));
-            int id = robot.identifier.getGoldMineral();
-            telemetry.addData("Gold", id);
-            telemetry.update();
-        }
+        robot.autonomous.rotateTo(-35);
+
+        sleep((int)qtime);
+
+        robot.autonomous.moveForwardBackward(toWall, Mugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.rotateTo(45);
+        robot.autonomous.moveSensorDistance(robot.autonomous.right, 100);
+        robot.autonomous.rotateTo(45);
+
+        robot.autonomous.moveForwardBackward(toDepot, Mugurel.AutonomousMoveType.BACKWARD);
+        //robot.autonomous.moveSensorDistance(robot.autonomous.back, 600);
+
+        robot.autonomous.dropMarker();
+        sleep(200);
+
+        robot.collector.rotateTicks(ticksRotation);
+        robot.autonomous.moveForwardBackward(toCrater, Mugurel.AutonomousMoveType.FORWARD);
+
+        while(opModeIsActive()) { ; }
     }
 }
