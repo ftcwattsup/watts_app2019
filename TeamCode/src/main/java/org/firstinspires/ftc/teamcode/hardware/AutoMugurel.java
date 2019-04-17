@@ -474,6 +474,8 @@ public class AutoMugurel extends Mugurel {
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier(hm);
         autonomous = new Autonomous();
+        identifier.init();
+        autonomous.init();
     }
 
     public void setTelemetry(Telemetry _t) {
