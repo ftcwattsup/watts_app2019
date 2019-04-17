@@ -67,7 +67,7 @@ public class DriverControled extends LinearOpMode {
         gaju = new MyGamepad(gamepad1);
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
-        robot.initTelemetry(telemetry);
+        robot.setTelemetry(telemetry);
         robot.setOpmode(this);
 
         //waitForStart();
@@ -111,8 +111,6 @@ public class DriverControled extends LinearOpMode {
             double gajux = gaju.getValue(MyGamepad.Axes.LEFT_X);
             double gajuy = gaju.getValue(MyGamepad.Axes.LEFT_Y);
             double gajur = gaju.getValue(MyGamepad.Axes.RIGHT_X);
-            //if(gaju.getValue(MyGamepad.Buttons.X))  gajux += -1.0;
-            //if(gaju.getValue(MyGamepad.Buttons.B))  gajux += 1.0;
 
             if(gaju.getValue(MyGamepad.Buttons.DPAD_UP))    robot.runner.move(0, 1, 0, modifier);
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN)) robot.runner.move(0, -1, 0, modifier);
@@ -123,11 +121,11 @@ public class DriverControled extends LinearOpMode {
             if(gaju.getValue(MyGamepad.Buttons.LEFT_BUMPER))    robot.lift.goToPositionNoWait((int)liftTicks, 1.0);
             if(gaju.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   robot.lift.goToPositionNoWait(0, 1.0);
 
-            /*double liftPower = duta.getValue(MyGamepad.Axes.RIGHT_Y);
-            //if(gaju.getValue(MyGamepad.Buttons.LEFT_BUMPER))    liftPower -= 1.0;
-            //if(gaju.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   liftPower += 1.0;
-            if(liftPower > 1.0) liftPower = 1.0;
-            if(liftPower < -1.0)    liftPower = -1.0;*/
+            /** /////////////////////////////////////////////////// DUTA
+            /////////////////////////////////////////////////////// DUTA
+            /////////////////////////////////////////////////////// DUTA
+            /////////////////////////////////////////////////////// DUTA */
+
             robot.lift.move(duta.getValue(MyGamepad.Axes.RIGHT_Y));
 
             double rotModifier = 0.18;
@@ -207,14 +205,9 @@ public class DriverControled extends LinearOpMode {
             }
             else bPress = false;
 
-            if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(40);
-            else robot.collector.collect(matState);
+            if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.2);
+            else robot.collector.collect((double)matState * 1.0);
 
-            telemetry.addData("Lift position", robot.lift.motor.getCurrentPosition());
-            telemetry.addData("rotLeftTicks", robot.collector.rotLeft.getTargetPosition());
-            telemetry.addData("rotRightTicks", robot.collector.rotRight.getTargetPosition());
-            telemetry.addData("rotLeftCurrent", robot.collector.rotLeft.getCurrentPosition());
-            telemetry.addData("rotRightCurrent", robot.collector.rotRight.getCurrentPosition());
             telemetry.update();
         }
     }

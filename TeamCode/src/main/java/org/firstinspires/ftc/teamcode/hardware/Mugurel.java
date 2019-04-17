@@ -27,10 +27,9 @@ public class Mugurel {
                 hm.get(DcMotor.class, Config.rightBack)
         );
         collector = new Collector(
-                hm.get(DcMotor.class, Config.rotLeft),
-                hm.get(DcMotor.class, Config.rotRight),
+                hm.get(DcMotor.class, Config.rot),
                 hm.get(DcMotor.class, Config.extend),
-                hm.get(CRServo.class, Config.maturique)
+                hm.get(DcMotor.class, Config.maturique)
         );
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
     }

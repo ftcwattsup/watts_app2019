@@ -102,8 +102,7 @@ public class Collector {
         rot.setPower(speed);
     }
 
-    public void stopRotation()
-    {
+    public void stopRotation() {
         rot.setTargetPosition(rot.getCurrentPosition());
     }
 
@@ -117,6 +116,11 @@ public class Collector {
     /**
      * Maturique
      */
+    public void collect(double power) {
+        if(Math.abs(power) < 0.01)  stopMaturique();
+        else    startMaturique(power);
+    }
+
     public void startMaturique(double power) {
         if(mat.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER)    mat.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         mat.setPower(power);
@@ -126,10 +130,33 @@ public class Collector {
         mat.setPower(0);
         int ticks = mat.getCurrentPosition();
         mat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         int period = (int)(matRevolution) / 4;
         int newpos = (int)(ticks / period) * period;
-        mat.setTargetPosition(newpos);
+
+        int pos = newpos;
+        int dst = Math.abs(mat.getCurrentPosition() - newpos);
+
+        newpos -= period;
+        if(Math.abs(mat.getCurrentPosition() - newpos) < dst) {
+            dst = Math.abs(mat.getCurrentPosition() - newpos);
+            pos = newpos;
+        }
+
+        newpos += 2 * period;
+        if(Math.abs(mat.getCurrentPosition() - newpos) < dst) {
+            dst = Math.abs(mat.getCurrentPosition() - newpos);
+            pos = newpos;
+        }
+
+        mat.setTargetPosition(pos);
         mat.setPower(1.0);
+    }
+
+    void showTelemetry() {
+        telemetry.addData("rot current", rot.getCurrentPosition());
+        telemetry.addData("rot target", rot.getTargetPosition());
+        telemetry.update();
     }
 
     public void setTelemetry(Telemetry _t) { telemetry = _t; }
