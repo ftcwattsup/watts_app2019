@@ -27,9 +27,10 @@ public class Collector {
 
     public DcMotor rot, extender, mat;
 
-    public int rotTicks = 50;
+    public int rotTicks = 70;
     public double defaultPower = 0.9;
-    public double minPower = 0.2;
+
+    public int extendLander = 4900;
 
     public double matRevolution = 100;
 
@@ -40,7 +41,7 @@ public class Collector {
 
         mat.setDirection(DcMotorSimple.Direction.REVERSE);
         rot.setDirection(DcMotorSimple.Direction.FORWARD);
-        extender.setDirection(DcMotorSimple.Direction.REVERSE);
+        extender.setDirection(DcMotorSimple.Direction.FORWARD);
 
         rot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extender.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -115,6 +116,7 @@ public class Collector {
 
     public void stopRotation() {
         rot.setTargetPosition(rot.getCurrentPosition());
+        extender.setPower(0.0);
         while(!queue.isEmpty()) queue.remove();
     }
 
@@ -133,7 +135,15 @@ public class Collector {
      * Extension
      */
     public void extend(double speed) {
+        if(extender.isBusy())   return;
+        extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extender.setPower(speed);
+    }
+
+    public void goToLanderPosition() {
+        extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extender.setTargetPosition(extendLander);
+        extender.setPower(1.0);
     }
 
     /**
@@ -151,7 +161,8 @@ public class Collector {
 
     public void stopMaturique() {
         mat.setPower(0);
-        int ticks = mat.getCurrentPosition();
+        return;
+        /*int ticks = mat.getCurrentPosition();
         mat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         int period = (int)(matRevolution) / 4;
@@ -173,12 +184,31 @@ public class Collector {
         }
 
         mat.setTargetPosition(pos);
+        mat.setPower(1.0);*/
+    }
+
+    public void rotateMat()
+    {
+        mat.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        mat.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        mat.setPower(0);
+        mat.setTargetPosition((int)matRevolution);
         mat.setPower(1.0);
     }
 
     public void showTelemetry() {
         telemetry.addData("rot current", rot.getCurrentPosition());
         telemetry.addData("rot target", rot.getTargetPosition());
+
+        telemetry.addData("mat current", mat.getCurrentPosition());
+        telemetry.addData("mat target", mat.getTargetPosition());
+        telemetry.addData("mat power", mat.getPower());
+        telemetry.addData("mat revolution", matRevolution);
+
+        telemetry.addData("ext current", extender.getCurrentPosition());
+        telemetry.addData("ext target", extender.getTargetPosition());
+        telemetry.addData("ext power", extender.getPower());
+
         telemetry.update();
     }
 

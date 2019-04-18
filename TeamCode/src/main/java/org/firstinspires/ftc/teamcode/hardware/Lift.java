@@ -11,7 +11,7 @@ public class Lift {
     public LinearOpMode opmode;
 
     public DcMotor motor;
-    public final static int tickInterval = 6215;
+    public final static int tickInterval = 5900;
 
     public Lift(DcMotor _motor) {
         motor = _motor;
@@ -74,6 +74,11 @@ public class Lift {
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setTargetPosition(0);
         motor.setPower(1.0);
+    }
+
+    public void showTelemetry() {
+        telemetry.addData("lift current", motor.getCurrentPosition());
+        telemetry.update();
     }
 
     public void setTelemetry(Telemetry _t) { telemetry = _t; }

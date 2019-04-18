@@ -55,14 +55,14 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 public class HookDown extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
-    private AutoMugurel robot;
+    private Mugurel robot;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
 
-        robot = new AutoMugurel(hardwareMap);
+        robot = new Mugurel(hardwareMap);
         robot.setOpmode(this);
         robot.setTelemetry(telemetry);
         telemetry.update();
