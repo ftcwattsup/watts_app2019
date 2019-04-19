@@ -69,7 +69,6 @@ public class DriverControled extends LinearOpMode {
         robot = new Mugurel(hardwareMap);
         robot.setTelemetry(telemetry);
         robot.setOpmode(this);
-        robot.collector.extendLander = 0;
 
         //waitForStart();
         while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
@@ -79,11 +78,12 @@ public class DriverControled extends LinearOpMode {
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.runner.setFace(Math.PI);
 
-        double upAllTicks = 2950;
+        double upAllTicks = 3150;
         double upTicksRotate = 2000;
         double up2TicksRotate = upAllTicks - upTicksRotate;
-        double downTicksRotate = -2950;
+        double downTicksRotate = -3150;
         double liftTicks = 5900;
+        robot.collector.extendLander = 0;
         boolean xPress = false, bPress = false;
         int matState = 0;
 

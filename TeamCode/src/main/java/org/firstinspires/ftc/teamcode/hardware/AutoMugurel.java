@@ -46,7 +46,7 @@ public class AutoMugurel extends Mugurel {
         public int extendStart = 600;
         public int extendEnd = 3300;
 
-        public double upAllTicks = 2950;
+        public double upAllTicks = 3150;
         public double upTicksRotate = 2000;
         public double up2TicksRotate = upAllTicks - upTicksRotate;
 
@@ -149,7 +149,7 @@ public class AutoMugurel extends Mugurel {
 
         public void park() {
             collector.rotateToPosition(parkPos, 0.5);
-            moveForwardBackward(200, AutonomousMoveType.FORWARD);
+            moveForwardBackward(300, AutonomousMoveType.FORWARD);
         }
 
         public void land() {

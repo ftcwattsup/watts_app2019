@@ -29,16 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
@@ -55,16 +50,14 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Driver Controled Field Oriented", group="Linear Opmode")
-@Disabled
-public class DriverControledFieldOriented extends LinearOpMode {
+@TeleOp(name="Driver Controled Depot", group="Linear Opmode")
+//@Disabled
+public class DriverControledDepot extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
     private MyGamepad gaju, duta;
-
-    private BNO055IMU imu;
 
     @Override
     public void runOpMode() {
@@ -75,9 +68,6 @@ public class DriverControledFieldOriented extends LinearOpMode {
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
         robot.setTelemetry(telemetry);
-
-        initIMU();
-
         robot.setOpmode(this);
 
         //waitForStart();
@@ -88,11 +78,12 @@ public class DriverControledFieldOriented extends LinearOpMode {
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.runner.setFace(Math.PI);
 
-        double upAllTicks = 2900;
+        double upAllTicks = 3150;
         double upTicksRotate = 2000;
         double up2TicksRotate = upAllTicks - upTicksRotate;
-        double downTicksRotate = -2800;
-        double liftTicks = -5300;
+        double downTicksRotate = -upAllTicks;
+        double liftTicks = 5900;
+        robot.collector.extendLander = 0;
         boolean xPress = false, bPress = false;
         int matState = 0;
 
@@ -108,11 +99,10 @@ public class DriverControledFieldOriented extends LinearOpMode {
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            /*if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(0);
+            if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(0);
             else if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(Math.PI);
             else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(-Math.PI / 2.0);*/
-            robot.runner.setFace(Math.toRadians(-getHeading()));
+            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(-Math.PI / 2.0);
 
             double modifier = 1.0;
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    modifier = 0.3;
@@ -149,8 +139,9 @@ public class DriverControledFieldOriented extends LinearOpMode {
                 if(!yPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)upTicksRotate, 0.6);
-                    robot.collector.addTicksWithPower((int)up2TicksRotate, 0.35);
+                    robot.collector.addTicksWithPower((int)upTicksRotate, 0.75);
+                    robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
+                    robot.collector.goToLanderPosition();
                     yPress = true;
                 }
             }
@@ -162,6 +153,7 @@ public class DriverControledFieldOriented extends LinearOpMode {
                 {
                     robot.collector.stopRotation();
                     robot.collector.addTicksWithPower((int)downTicksRotate, 0.5);
+                    //robot.collector.rotateMat();
                     aPress = true;
                 }
             }
@@ -175,14 +167,14 @@ public class DriverControledFieldOriented extends LinearOpMode {
             double ext = 0.0;
             if(duta.getValue(MyGamepad.Buttons.LEFT_BUMPER))    ext += -1.0;
             if(duta.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   ext += 1.0;
-            robot.collector.extend(ext * 0.9);
+            robot.collector.extend(ext);
 
             if(duta.getRawValue(MyGamepad.Buttons.X))
             {
                 if(!xPress)
                 {
-                    if(matState == 1)   matState = 0;
-                    else    matState = 1;
+                    if(matState == -1)   matState = 0;
+                    else    matState = -1;
                     xPress = true;
                 }
             }
@@ -191,44 +183,19 @@ public class DriverControledFieldOriented extends LinearOpMode {
             {
                 if(!bPress)
                 {
-                    if(matState == -1)   matState = 0;
-                    else    matState = -1;
+                    if(matState == 1)   matState = 0;
+                    else    matState = 1;
                     bPress = true;
                 }
             }
             else bPress = false;
 
-            if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.2);
+            if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.5);
             else robot.collector.collect((double)matState * 1.0);
 
             robot.collector.showTelemetry();
+            robot.lift.showTelemetry();
             telemetry.update();
         }
-    }
-
-    public void initIMU() {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.mode = BNO055IMU.SensorMode.IMU;
-        //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-        //parameters.loggingEnabled      = true;
-        //parameters.loggingTag          = "IMU";
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
-
-        ElapsedTime timer = new ElapsedTime();
-        timer.reset();
-        while (!imu.isGyroCalibrated() && timer.milliseconds() < 1000) {
-            telemetry.addData("Gyro", "Calibrating...");
-            telemetry.update();
-            if(!opModeIsActive())    return;
-        }
-        telemetry.addData("Gyro", "Calibrated");
-        telemetry.update();
-    }
-
-    public double getHeading() {
-        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 }

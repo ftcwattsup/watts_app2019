@@ -157,7 +157,7 @@ public class Collector {
      * Extension
      */
     public void extend(double speed) {
-        if(extender.isBusy() && Math.abs(extender.getPower()) > 0.01)   return;
+        if(extender.isBusy() && Math.abs(speed) < 0.01)   return;
         extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extender.setPower(speed);
     }
