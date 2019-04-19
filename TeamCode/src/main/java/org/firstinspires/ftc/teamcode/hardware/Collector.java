@@ -31,6 +31,7 @@ public class Collector {
     public double defaultPower = 0.9;
 
     public int extendLander = 4900;
+    public int extendMax = 5450;
 
     public double matRevolution = 100;
 
@@ -131,11 +132,32 @@ public class Collector {
         }
     }
 
+    public void rotateToPosition(int pos, double power) {
+        rot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rot.setTargetPosition(pos);
+        rot.setPower(power);
+    }
+
+    public void rotateToPositionWait(int pos, double power) {
+        rot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rot.setTargetPosition(pos);
+        rot.setPower(power);
+
+        while(rot.isBusy())
+        {
+            if(!opmode.opModeIsActive())
+            {
+                rot.setPower(0);
+                return;
+            }
+        }
+    }
+
     /**
      * Extension
      */
     public void extend(double speed) {
-        if(extender.isBusy())   return;
+        if(extender.isBusy() && Math.abs(extender.getPower()) > 0.01)   return;
         extender.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extender.setPower(speed);
     }
@@ -144,6 +166,30 @@ public class Collector {
         extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extender.setTargetPosition(extendLander);
         extender.setPower(1.0);
+    }
+
+    public void extendGoToPosition(int pos, double power) {
+        extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extender.setTargetPosition(pos);
+        extender.setPower(power);
+    }
+
+    public void extendGoToPositionWait(int pos, double power) {
+        extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extender.setTargetPosition(pos);
+        extender.setPower(power);
+        while(extender.isBusy())
+        {
+            if(!opmode.opModeIsActive())
+            {
+                extender.setPower(0);
+                return;
+            }
+        }
+    }
+
+    public void extendGoToPosition(int pos) {
+        extendGoToPosition(pos, 1.0);
     }
 
     /**
@@ -209,7 +255,7 @@ public class Collector {
         telemetry.addData("ext target", extender.getTargetPosition());
         telemetry.addData("ext power", extender.getPower());
 
-        telemetry.update();
+        //telemetry.update();
     }
 
     public void setTelemetry(Telemetry _t) { telemetry = _t; }

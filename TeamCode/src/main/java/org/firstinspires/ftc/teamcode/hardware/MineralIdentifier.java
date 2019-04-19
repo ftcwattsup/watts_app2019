@@ -29,7 +29,7 @@ public class MineralIdentifier {
     public static final double cameraX = 1280;
     public static final double cameraY = 720;
     public double middleX = cameraX / 2.0;
-    public double TOP = 250;
+    public double TOP = 220;
     public double HEIGHT = 75;
 
     public int last = -1;

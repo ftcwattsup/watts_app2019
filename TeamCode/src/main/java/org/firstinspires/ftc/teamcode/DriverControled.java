@@ -69,6 +69,7 @@ public class DriverControled extends LinearOpMode {
         robot = new Mugurel(hardwareMap);
         robot.setTelemetry(telemetry);
         robot.setOpmode(this);
+        robot.collector.extendLander = 0;
 
         //waitForStart();
         while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
@@ -81,7 +82,7 @@ public class DriverControled extends LinearOpMode {
         double upAllTicks = 2950;
         double upTicksRotate = 2000;
         double up2TicksRotate = upAllTicks - upTicksRotate;
-        double downTicksRotate = -2900;
+        double downTicksRotate = -2950;
         double liftTicks = 5900;
         boolean xPress = false, bPress = false;
         int matState = 0;
@@ -192,7 +193,7 @@ public class DriverControled extends LinearOpMode {
             if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.5);
             else robot.collector.collect((double)matState * 1.0);
 
-            //robot.collector.showTelemetry();
+            robot.collector.showTelemetry();
             robot.lift.showTelemetry();
             telemetry.update();
         }

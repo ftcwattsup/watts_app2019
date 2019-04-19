@@ -191,6 +191,16 @@ public class Runner {
         setPower(pw);
     }
 
+    public void fancyRotateMove(double left, double right) {
+        fancyRotateMove(left, right, 1.0);
+    }
+
+    public void fancyRotateMove(double left, double right, double rap) {
+        MotorPowers pw = new MotorPowers(left, left, right, right);
+        pw.rap(rap);
+        setPower(pw);
+    }
+
     public void moveTank(double x, double y, double r) {
         double left = y + r, right = y - r;
         if (Math.abs(r) < 0.001) setPower(left, left, right, right);

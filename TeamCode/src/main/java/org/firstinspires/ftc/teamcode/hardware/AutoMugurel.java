@@ -29,12 +29,26 @@ public class AutoMugurel extends Mugurel {
     public class Autonomous {
         public BNO055IMU imu;
         public ModernRoboticsI2cRangeSensor back, left, right;
-        public Servo marker;
 
         public double myAngle;
 
-        public final double markerStart = 1.0;
-        public final double markerDown = 0.55;
+        public final int rotateMarker = -3800;
+        public final int rotateCollect = -4170;
+        public final int harmlessPos = -1400;
+        public final int parkPos = -3800;
+        public final int rotateParkDepot = -3900;
+
+        public int extendLander = 4900;
+        public int extendMax = 5400;
+        public int preMarkerExtend = 4000;
+        public int extendMarker = extendMax;
+
+        public int extendStart = 600;
+        public int extendEnd = 3300;
+
+        public double upAllTicks = 2950;
+        public double upTicksRotate = 2000;
+        public double up2TicksRotate = upAllTicks - upTicksRotate;
 
         Autonomous() {
             ;
@@ -60,8 +74,7 @@ public class AutoMugurel extends Mugurel {
             right = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, Config.rightSensor);
             //right.setI2cAddress(I2cAddr.create8bit(0x28));
 
-            marker = hardwareMap.get(Servo.class, Config.marker);
-            marker.setPosition(markerStart);
+            ticksPerRevolution = runner.leftFront.getMotorType().getTicksPerRev();
 
             ElapsedTime timer = new ElapsedTime();
             timer.reset();
@@ -74,14 +87,75 @@ public class AutoMugurel extends Mugurel {
             telemetry.update();
         }
 
-        public void dropMarker()
-        {
-            marker.setPosition(markerDown);
+        public void harmlessArm() {
+            collector.rotateToPosition(harmlessPos, 0.8);
+        }
+
+        public void extendForMarker() {
+            collector.extendGoToPosition(extendMarker);
+            collector.rotateToPosition(rotateMarker, 0.5);
+        }
+
+        public void dropMarker() {
+            while(collector.rot.isBusy() || collector.extender.isBusy()) { ; }
+            collector.collect(-1.0);
+            opmode.sleep(500);
+            collector.collect(0);
+        }
+
+        public void prepareForDepotMarker() {
+            collector.rotateToPosition(rotateMarker, 0.5);
+            collector.extendGoToPosition(extendMarker);
+        }
+
+        public void parkDepot() {
+            collector.rotateToPosition(rotateParkDepot, 0.5);
+            collector.extendGoToPosition(extendLander);
+        }
+
+        public void safeExtend() {
+            collector.extendGoToPosition(0);
+        }
+
+        public void prepareForExtend() {
+            harmlessArm();
+            //collector.rotateToPosition(rotateMarker, 0.8);
+            collector.extendGoToPosition(preMarkerExtend);
+        }
+
+        public void prepareCollect() {
+            collector.rotateToPosition(rotateCollect, 0.8);
+            collector.extendGoToPosition(extendStart);
+        }
+
+        public void collectMineral() {
+            collector.collect(1.0);
+            collector.extendGoToPositionWait(extendEnd, 1);
+            collector.extendGoToPositionWait(extendEnd - 500, 1);
+            collector.collect(0);
+        }
+
+        public void scoreMineral() {
+            //collector.stopRotation();
+
+            collector.goToLanderPosition();
+            rotateTo(0);
+            collector.rotateToPositionWait(collector.rot.getCurrentPosition() + (int)upTicksRotate, 0.9);
+            collector.rotateToPositionWait(collector.rot.getCurrentPosition() + (int)up2TicksRotate, 0.5);
+            collector.collect(0.5);
+            opmode.sleep(700);
+            collector.collect(0);
+        }
+
+        public void park() {
+            collector.rotateToPosition(parkPos, 0.5);
+            moveForwardBackward(200, AutonomousMoveType.FORWARD);
         }
 
         public void land() {
             lift.land();
         }
+        public void hook() { lift.hook(); }
 
         public void startTracking() {
             imu.startAccelerationIntegration(new Position(), new Velocity(), 200);
@@ -145,6 +219,12 @@ public class AutoMugurel extends Mugurel {
             rotateP(dist);
         }
 
+        public void rotateToFancy(double degrees, double other, AutonomousMoveType type) {
+            degrees = AngleUnit.normalizeDegrees(degrees);
+            double dist = getAngleDistance(getHeading(), degrees);
+            rotatePFancy(dist, other, type);
+        }
+
         public void rotateP(double degrees) {
             runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
             double accepted = 0.5;
@@ -176,6 +256,56 @@ public class AutoMugurel extends Mugurel {
                 power = getPower(power);
 
                 runner.angleMove(0, 0, power);
+
+                if (!opmode.opModeIsActive()) {
+                    runner.stop();
+                    return;
+                }
+            }
+            runner.stop();
+        }
+
+        public void rotatePFancy(double degrees, double other, AutonomousMoveType type) {
+            runner.reset(DcMotor.RunMode.RUN_USING_ENCODER);
+            double accepted = 0.5;
+            double needAngle = AngleUnit.normalizeDegrees(getHeading() + degrees);
+            double lastPower = 0.0;
+            double maxDifference = 0.1;
+            double angleDecrease = 40.0 - (1.0 - other) * 5.0;
+            while (true) {
+                double myAngle = getHeading();
+                telemetry.addData("Heading", myAngle);
+                telemetry.addData("Power", lastPower);
+                double distance = getAngleDistance(myAngle, needAngle);
+                telemetry.addData("Distance", distance);
+                telemetry.update();
+                if (Math.abs(distance) < accepted) break;
+
+                double power = 0.0;
+
+                if (Math.abs(distance) < angleDecrease)
+                    power = Math.abs(distance) / angleDecrease;
+                else
+                    power = 1.0;
+
+                power = Math.min(power, lastPower + maxDifference);
+                power = Math.max(power, lastPower - maxDifference);
+                lastPower = power;
+                power = -power;
+                if (distance < 0) power = -power;
+                power = getPower(power);
+
+                //runner.angleMove(0, 0, power);
+                if(type == AutonomousMoveType.FORWARD)
+                {
+                    if(power < 0)   runner.fancyRotateMove(-power * other, -power);
+                    else    runner.fancyRotateMove(power, power * other);
+                }
+                else if(type == AutonomousMoveType.BACKWARD)
+                {
+                    if(power < 0)   runner.fancyRotateMove(power, power * other);
+                    else    runner.fancyRotateMove(-power * other, -power);
+                }
 
                 if (!opmode.opModeIsActive()) {
                     runner.stop();
@@ -474,6 +604,30 @@ public class AutoMugurel extends Mugurel {
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier(hm);
         autonomous = new Autonomous();
+        identifier.init();
+        autonomous.init();
+    }
+
+    public AutoMugurel(HardwareMap hm, Telemetry _t, LinearOpMode _o) {
+        hardwareMap = hm;
+        runner = new Runner(
+                hm.get(DcMotor.class, Config.leftFront),
+                hm.get(DcMotor.class, Config.rightFront),
+                hm.get(DcMotor.class, Config.leftBack),
+                hm.get(DcMotor.class, Config.rightBack)
+        );
+        collector = new Collector(
+                hm.get(DcMotor.class, Config.rot),
+                hm.get(DcMotor.class, Config.extend),
+                hm.get(DcMotor.class, Config.maturique)
+        );
+        lift = new Lift(hm.get(DcMotor.class, Config.lift));
+        identifier = new MineralIdentifier(hm);
+        autonomous = new Autonomous();
+
+        setTelemetry(_t);
+        setOpmode(_o);
+
         identifier.init();
         autonomous.init();
     }

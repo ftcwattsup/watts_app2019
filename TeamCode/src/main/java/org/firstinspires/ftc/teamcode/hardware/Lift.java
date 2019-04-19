@@ -67,7 +67,7 @@ public class Lift {
     public void land() {
         goToPosition(tickInterval, 1.0);
     }
-    public void hook() { goToPosition(-tickInterval, 1.0); }
+    public void hook() { goToPositionNoWait(-tickInterval, 1.0); }
 
     public void stay() {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -78,7 +78,7 @@ public class Lift {
 
     public void showTelemetry() {
         telemetry.addData("lift current", motor.getCurrentPosition());
-        telemetry.update();
+        //telemetry.update();
     }
 
     public void setTelemetry(Telemetry _t) { telemetry = _t; }
