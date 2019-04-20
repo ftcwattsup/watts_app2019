@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -32,6 +32,7 @@ public class Mugurel {
                 hm.get(DcMotor.class, Config.maturique)
         );
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
+
     }
 
     public void setTelemetry(Telemetry _t) {

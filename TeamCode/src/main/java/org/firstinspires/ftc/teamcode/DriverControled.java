@@ -32,8 +32,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.hardware.Config;
 import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
@@ -53,23 +56,20 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 @TeleOp(name="Driver Controled", group="Linear Opmode")
 //@Disabled
 public class DriverControled extends LinearOpMode {
-
+ Servo servo1;
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
     private MyGamepad gaju, duta;
-
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-
         gaju = new MyGamepad(gamepad1);
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
         robot.setTelemetry(telemetry);
         robot.setOpmode(this);
-
         //waitForStart();
         while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
@@ -84,10 +84,10 @@ public class DriverControled extends LinearOpMode {
         double downTicksRotate = -3150;
         double liftTicks = 5900;
         robot.collector.extendLander = 0;
-        boolean xPress = false, bPress = false;
+        boolean xPress = false, bPress = false, dpadr=false,dpadl=false;
         int matState = 0;
-
         boolean aPress = false, yPress = false, dupPress = false;
+        servo1=hardwareMap.get(Servo.class, "servo1");
 
         while (opModeIsActive()) {
 
@@ -139,8 +139,8 @@ public class DriverControled extends LinearOpMode {
                 if(!yPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)upTicksRotate, 0.75);
-                    robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
+                    robot.collector.addTicksWithPower((int)upAllTicks, 0.45);
+                    //robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
                     robot.collector.goToLanderPosition();
                     yPress = true;
                 }
@@ -192,10 +192,33 @@ public class DriverControled extends LinearOpMode {
 
             if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.5);
             else robot.collector.collect((double)matState * 1.0);
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_RIGHT))
+            {
+                if(!dpadr)
+                {
+                    servo1.setPosition(0.3);
+                    dpadr=true;
+                }
+            }
+            else
+                dpadr = false;
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_LEFT))
+            {
+                if(!dpadl)
+                {
+                    servo1.setPosition(0.5);
+                    dpadl=true;
+                }
+            }
+            else
+                dpadl = false;
 
             robot.collector.showTelemetry();
             robot.lift.showTelemetry();
+            telemetry.addData("Servo Position",servo1.getPosition());
             telemetry.update();
         }
     }
+
 }
+
