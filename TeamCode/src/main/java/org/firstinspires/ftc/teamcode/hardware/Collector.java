@@ -18,14 +18,17 @@ public class Collector {
     class RotationOperation {
         public int ticks = 0;
         public double power = 0;
+        public double powerFinal = 0;
 
         public RotationOperation() { ; }
-        public RotationOperation(int _ticks, double _power) { ticks = _ticks; power = _power; }
+        public RotationOperation(int _ticks, double _power) { ticks = _ticks; power = _power; powerFinal = _power; }
+        public RotationOperation(int _ticks, double _power, double _powerf) { ticks = _ticks; power = _power; powerFinal = _powerf; }
     }
 
     Queue<RotationOperation> queue;
 
     public DcMotor rot, extender, mat;
+    public Servo holder;
     public int rotTicks = 70;
     public double defaultPower = 0.9;
 
@@ -34,10 +37,18 @@ public class Collector {
 
     public double matRevolution = 100;
 
-    Collector(DcMotor _rot, DcMotor _extend, DcMotor _maturique) {
+    public double holdClosed = 0.3;
+    public double holdOpen = 0.5;
+
+    public RotationOperation nowPlaying;
+
+    Collector(DcMotor _rot, DcMotor _extend, DcMotor _maturique, Servo _holder) {
         rot = _rot;
         extender = _extend;
         mat = _maturique;
+        holder = _holder;
+
+        holder.setPosition(holdClosed);
 
         mat.setDirection(DcMotorSimple.Direction.REVERSE);
         rot.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -67,12 +78,26 @@ public class Collector {
     }
 
     /**
+     * Holder
+     */
+
+    public void openHolder() { holder.setPosition(holdOpen); }
+    public void closeHolder() { holder.setPosition(holdClosed); }
+
+    /**
      * Rotation
      */
 
     public void update()
     {
-        if(rot.isBusy())    return;
+        if(rot.isBusy()) {
+            int ticksDecrease = 800;
+            int distance = Math.abs(rot.getCurrentPosition() - rot.getTargetPosition());
+            if(distance > ticksDecrease)    return;
+            double power = nowPlaying.powerFinal + ((double)(distance) / (double)(ticksDecrease)) * (nowPlaying.power - nowPlaying.powerFinal);
+            rot.setPower(power);
+            return;
+        }
         if(queue.isEmpty()) return;
         RotationOperation op = queue.peek();
         queue.remove();
@@ -96,6 +121,13 @@ public class Collector {
         queue.add(new RotationOperation(ticks, power));
     }
 
+    public void addTicksWithPower(int ticks, double power, double powerf) {
+        //rot.setPower(power);
+        //rot.setTargetPosition(rot.getCurrentPosition() + ticks);
+
+        queue.add(new RotationOperation(ticks, power, powerf));
+    }
+
     public void rotateTicks(int ticks) {
         rot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -107,6 +139,7 @@ public class Collector {
     }
 
     public void addTicksWithPower(RotationOperation op) {
+        nowPlaying = op;
         int ticks = op.ticks;
         double power = op.power;
 

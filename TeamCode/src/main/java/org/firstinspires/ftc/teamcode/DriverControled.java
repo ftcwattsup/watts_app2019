@@ -56,7 +56,7 @@ import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 @TeleOp(name="Driver Controled", group="Linear Opmode")
 //@Disabled
 public class DriverControled extends LinearOpMode {
- Servo servo1;
+
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private Mugurel robot;
@@ -87,7 +87,6 @@ public class DriverControled extends LinearOpMode {
         boolean xPress = false, bPress = false, dpadr=false,dpadl=false;
         int matState = 0;
         boolean aPress = false, yPress = false, dupPress = false;
-        servo1=hardwareMap.get(Servo.class, "servo1");
 
         while (opModeIsActive()) {
 
@@ -153,6 +152,7 @@ public class DriverControled extends LinearOpMode {
                 {
                     robot.collector.stopRotation();
                     robot.collector.addTicksWithPower((int)downTicksRotate, 0.5);
+                    robot.collector.closeHolder();
                     //robot.collector.rotateMat();
                     aPress = true;
                 }
@@ -196,8 +196,8 @@ public class DriverControled extends LinearOpMode {
             {
                 if(!dpadr)
                 {
-                    servo1.setPosition(0.3);
-                    dpadr=true;
+                    robot.collector.closeHolder();
+                    dpadr = true;
                 }
             }
             else
@@ -206,8 +206,8 @@ public class DriverControled extends LinearOpMode {
             {
                 if(!dpadl)
                 {
-                    servo1.setPosition(0.5);
-                    dpadl=true;
+                    robot.collector.openHolder();
+                    dpadl = true;
                 }
             }
             else
@@ -215,7 +215,6 @@ public class DriverControled extends LinearOpMode {
 
             robot.collector.showTelemetry();
             robot.lift.showTelemetry();
-            telemetry.addData("Servo Position",servo1.getPosition());
             telemetry.update();
         }
     }
