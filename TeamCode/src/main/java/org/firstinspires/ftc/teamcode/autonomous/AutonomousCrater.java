@@ -80,7 +80,7 @@ public class AutonomousCrater extends LinearOpMode {
 
         int mineral = robot.identifier.findGold();
 
-        robot.autonomous.rotateTo(55);
+        robot.autonomous.rotateTo(52);
 
         robot.autonomous.prepareForExtend();
         robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.FORWARD);
@@ -95,14 +95,14 @@ public class AutonomousCrater extends LinearOpMode {
         robot.autonomous.safeExtend();
 
         robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.BACKWARD);
-        robot.autonomous.rotateTo(55);
+        robot.autonomous.rotateTo(52);
         robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.BACKWARD);
 
         robot.autonomous.prepareCollect();
 
-        if(mineral == 0) robot.autonomous.rotateTo(15);
-        else if(mineral == 1)   robot.autonomous.rotateTo(-10);
-        else if(mineral == 2)   robot.autonomous.rotateTo(-35);
+        if(mineral == 0) robot.autonomous.rotateTo(16);
+        else if(mineral == 1)   robot.autonomous.rotateTo(-9);
+        else if(mineral == 2)   robot.autonomous.rotateTo(-34);
 
         robot.autonomous.collectMineral();
         robot.autonomous.scoreMineral();

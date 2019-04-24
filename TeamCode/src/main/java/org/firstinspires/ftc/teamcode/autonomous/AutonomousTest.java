@@ -72,10 +72,43 @@ public class AutonomousTest extends LinearOpMode {
         while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
-        int mineral = 1;
-        robot.collector.goToLanderPosition();
+        robot.autonomous.land();
+        robot.autonomous.harmlessArm();
+        robot.autonomous.rotateTo(15);
+        robot.autonomous.hook();
+
+        int mineral = robot.identifier.findGold();
+
+        robot.autonomous.rotateTo(52);
+
+        robot.autonomous.prepareForExtend();
+        robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.rotateTo(125);
+        robot.autonomous.extendForMarker();
+        robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.dropMarker();
+
+        robot.autonomous.harmlessArm();
+        robot.autonomous.safeExtend();
+
+        robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.BACKWARD);
+        robot.autonomous.rotateTo(52);
+        robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.BACKWARD);
+
+        robot.autonomous.prepareCollect();
+
+        if(mineral == 0) robot.autonomous.rotateTo(16);
+        else if(mineral == 1)   robot.autonomous.rotateTo(-10);
+        else if(mineral == 2)   robot.autonomous.rotateTo(-34);
+
+        robot.autonomous.collectMineral();
+        robot.autonomous.scoreMineral();
+        robot.autonomous.makeCycle();
 
         while(opModeIsActive()) {
+            telemetry.addData("min", mineral);
             telemetry.update();
         }
     }

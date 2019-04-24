@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -14,6 +15,7 @@ public class Collector {
 
     public Telemetry telemetry;
     public LinearOpMode opmode;
+    public ElapsedTime timer;
 
     class RotationOperation {
         public int ticks = 0;
@@ -38,9 +40,9 @@ public class Collector {
     public double matRevolution = 100;
 
     public double holdClosed = 0.3;
-    public double holdOpen = 0.5;
+    public double holdOpen = 0.08;
 
-    public RotationOperation nowPlaying;
+    public RotationOperation nowPlaying = new RotationOperation();
 
     Collector(DcMotor _rot, DcMotor _extend, DcMotor _maturique, Servo _holder) {
         rot = _rot;

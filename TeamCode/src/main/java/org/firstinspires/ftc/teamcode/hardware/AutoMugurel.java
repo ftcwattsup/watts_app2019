@@ -46,9 +46,10 @@ public class AutoMugurel extends Mugurel {
         public int extendStart = 600;
         public int extendEnd = 3300;
 
+        public double upTicksPre = 400;
         public double upAllTicks = 3150;
-        public double upTicksRotate = 2000;
-        public double up2TicksRotate = upAllTicks - upTicksRotate;
+        public double upTicksRotate = 2000 - upTicksPre;
+        public double up2TicksRotate = upAllTicks - upTicksRotate - upTicksPre;
 
         Autonomous() {
             ;
@@ -131,20 +132,44 @@ public class AutoMugurel extends Mugurel {
         public void collectMineral() {
             collector.collect(1.0);
             collector.extendGoToPositionWait(extendEnd, 1);
-            collector.extendGoToPositionWait(extendEnd - 500, 1);
+            collector.extendGoToPositionWait(extendEnd - 400, 1);
             collector.collect(0);
         }
 
         public void scoreMineral() {
             //collector.stopRotation();
 
+            collector.rotateToPosition(collector.rot.getCurrentPosition() + (int)upTicksPre, 0.9);
             collector.goToLanderPosition();
+            collector.rotateToPosition(collector.rot.getTargetPosition() + (int)upTicksRotate, 0.9);
             rotateTo(0);
-            collector.rotateToPositionWait(collector.rot.getCurrentPosition() + (int)upTicksRotate, 0.9);
-            collector.rotateToPositionWait(collector.rot.getCurrentPosition() + (int)up2TicksRotate, 0.5);
+            collector.rotateToPositionWait(collector.rot.getTargetPosition() + (int)up2TicksRotate, 0.5);
+            collector.openHolder();
             collector.collect(0.5);
-            opmode.sleep(700);
+            opmode.sleep(400);
             collector.collect(0);
+            collector.closeHolder();
+        }
+
+        public void makeCycle() {
+            collector.collect(1);
+            collector.rotateToPosition(collector.rot.getCurrentPosition() - (int)upAllTicks, 0.7);
+            moveForwardBackward(150, AutonomousMoveType.FORWARD);
+
+            while(collector.rot.isBusy())   {;}
+
+            collector.extendGoToPositionWait(extendEnd, 1);
+            collector.extendGoToPositionWait(extendEnd - 600, 1);
+
+            collector.collect(0);
+            collector.extendGoToPosition(extendLander, 1);
+            collector.rotateToPosition(collector.rot.getCurrentPosition() + (int)upAllTicks, 0.8);
+            moveForwardBackward(150, AutonomousMoveType.BACKWARD);
+
+            collector.openHolder();
+            collector.collect(0.5);
+            opmode.sleep(400);
+            collector.closeHolder();
         }
 
         public void park() {
@@ -599,7 +624,8 @@ public class AutoMugurel extends Mugurel {
         collector = new Collector(
                 hm.get(DcMotor.class, Config.rot),
                 hm.get(DcMotor.class, Config.extend),
-                hm.get(DcMotor.class, Config.maturique)
+                hm.get(DcMotor.class, Config.maturique),
+                hm.get(Servo.class, Config.holder)
         );
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier(hm);
@@ -619,7 +645,8 @@ public class AutoMugurel extends Mugurel {
         collector = new Collector(
                 hm.get(DcMotor.class, Config.rot),
                 hm.get(DcMotor.class, Config.extend),
-                hm.get(DcMotor.class, Config.maturique)
+                hm.get(DcMotor.class, Config.maturique),
+                hm.get(Servo.class, Config.holder)
         );
         lift = new Lift(hm.get(DcMotor.class, Config.lift));
         identifier = new MineralIdentifier(hm);

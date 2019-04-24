@@ -83,10 +83,12 @@ public class DriverControled extends LinearOpMode {
         double up2TicksRotate = upAllTicks - upTicksRotate;
         double downTicksRotate = -3150;
         double liftTicks = 5900;
+        double dupTicks = 400;
+        double ddownTicks = -400;
         robot.collector.extendLander = 0;
         boolean xPress = false, bPress = false, dpadr=false,dpadl=false;
         int matState = 0;
-        boolean aPress = false, yPress = false, dupPress = false;
+        boolean aPress = false, yPress = false, dupPress = false, ddownPress = false;
 
         while (opModeIsActive()) {
 
@@ -138,9 +140,10 @@ public class DriverControled extends LinearOpMode {
                 if(!yPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)upAllTicks, 0.45);
+                    robot.collector.addTicksWithPower((int)upAllTicks, 0.9, 0.2);
                     //robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
                     robot.collector.goToLanderPosition();
+                    //1robot.collector.collectFor(400);
                     yPress = true;
                 }
             }
@@ -151,7 +154,7 @@ public class DriverControled extends LinearOpMode {
                 if(!aPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)downTicksRotate, 0.5);
+                    robot.collector.addTicksWithPower((int)downTicksRotate, 0.9, 0.1);
                     robot.collector.closeHolder();
                     //robot.collector.rotateMat();
                     aPress = true;
@@ -159,6 +162,30 @@ public class DriverControled extends LinearOpMode {
             }
             else
                 aPress = false;
+
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_UP))
+            {
+                if(!dupPress)
+                {
+                    robot.collector.stopRotation();
+                    robot.collector.addTicksWithPower((int)dupTicks, 0.5, 0.2);
+                    dupPress = true;
+                }
+            }
+            else
+                dupPress = false;
+
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_DOWN))
+            {
+                if(!ddownPress)
+                {
+                    robot.collector.stopRotation();
+                    robot.collector.addTicksWithPower((int)ddownTicks, 0.5, 0.2);
+                    ddownPress = true;
+                }
+            }
+            else
+                ddownPress = false;
 
             robot.collector.update();
             if(duta.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)
