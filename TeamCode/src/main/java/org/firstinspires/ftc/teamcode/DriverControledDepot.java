@@ -29,11 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.teamcode.hardware.AutoMugurel;
 import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
@@ -59,35 +64,42 @@ public class DriverControledDepot extends LinearOpMode {
     private Mugurel robot;
     private MyGamepad gaju, duta;
 
+    private BNO055IMU imu;
+
+    private double finalAngle = 0;
+    private double rotOther = 0;
+    private boolean rotForward = false, inRotation = false;
+    private double lastPower = 0.0;
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
-
         gaju = new MyGamepad(gamepad1);
         duta = new MyGamepad(gamepad2);
         robot = new Mugurel(hardwareMap);
         robot.setTelemetry(telemetry);
         robot.setOpmode(this);
-
+        initIMU();
         //waitForStart();
         while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
         runtime.reset();
 
         robot.afterStartInit();
         robot.runner.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        robot.runner.setFace(Math.PI);
+        //robot.runner.setFace(Math.PI);
 
-        double upAllTicks = 3150;
+        double upAllTicks = 3050;
         double upTicksRotate = 2000;
         double up2TicksRotate = upAllTicks - upTicksRotate;
         double downTicksRotate = -upAllTicks;
         double liftTicks = 5900;
+        double dupTicks = 400;
+        double ddownTicks = -400;
         robot.collector.extendLander = 0;
-        boolean xPress = false, bPress = false;
+        boolean xPress = false, bPress = false, dpadr=false,dpadl=false;
         int matState = 0;
-
-        boolean aPress = false, yPress = false, dupPress = false;
+        boolean aPress = false, yPress = false, dupPress = false, ddownPress = false;
 
         while (opModeIsActive()) {
 
@@ -99,10 +111,10 @@ public class DriverControledDepot extends LinearOpMode {
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(0);
-            else if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(Math.PI);
-            else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(-Math.PI / 2.0);
+            if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(0);
+            else if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(Math.PI);
+            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(Math.PI / 2.0);
+            else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(-Math.PI / 2.0);
 
             double modifier = 1.0;
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    modifier = 0.3;
@@ -112,11 +124,27 @@ public class DriverControledDepot extends LinearOpMode {
             double gajuy = gaju.getValue(MyGamepad.Axes.LEFT_Y);
             double gajur = gaju.getValue(MyGamepad.Axes.RIGHT_X);
 
-            if(gaju.getValue(MyGamepad.Buttons.DPAD_UP))    robot.runner.move(0, 1, 0, modifier);
+            /*if(gaju.getValue(MyGamepad.Buttons.DPAD_UP))    robot.runner.move(0, 1, 0, modifier);
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN)) robot.runner.move(0, -1, 0, modifier);
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_LEFT)) robot.runner.move(-1, 0, 0, modifier);
             else if(gaju.getValue(MyGamepad.Buttons.DPAD_RIGHT))    robot.runner.move(1, 0, 0, modifier);
-            else    robot.runner.move(gajux, gajuy, gajur, modifier);
+            else    robot.runner.move(gajux, gajuy, gajur, modifier);*/
+
+            if(Math.abs(gajux + gajuy + gajur) > 0.01) {
+                inRotation = false;
+                robot.runner.move(gajux, gajuy, gajur, modifier);
+            }
+            else if(gaju.getValue(MyGamepad.Buttons.DPAD_UP)) {
+                fancyRotation(135, 0.17, true);
+                //robot.runner.setFaceDegrees(0);
+            }
+            else if(gaju.getValue(MyGamepad.Buttons.DPAD_DOWN)) {
+                fancyRotation(-120, 0.17, false);
+                //robot.runner.setFaceDegrees(180);
+            }
+            else if(!inRotation)
+                robot.runner.move(gajux, gajuy, gajur, modifier);
+            fancyRotationUpdate();
 
             if(gaju.getValue(MyGamepad.Buttons.LEFT_BUMPER))    robot.lift.goToPositionNoWait((int)liftTicks, 1.0);
             if(gaju.getValue(MyGamepad.Buttons.RIGHT_BUMPER))   robot.lift.goToPositionNoWait(0, 1.0);
@@ -139,9 +167,10 @@ public class DriverControledDepot extends LinearOpMode {
                 if(!yPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)upTicksRotate, 0.75);
-                    robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
+                    robot.collector.addTicksWithPower((int)upAllTicks, 0.9, 0.2);
+                    //robot.collector.addTicksWithPower((int)up2TicksRotate, 0.4);
                     robot.collector.goToLanderPosition();
+                    //1robot.collector.collectFor(400);
                     yPress = true;
                 }
             }
@@ -152,13 +181,38 @@ public class DriverControledDepot extends LinearOpMode {
                 if(!aPress)
                 {
                     robot.collector.stopRotation();
-                    robot.collector.addTicksWithPower((int)downTicksRotate, 0.5);
+                    robot.collector.addTicksWithPower((int)downTicksRotate, 0.9, 0.1);
+                    robot.collector.closeHolder();
                     //robot.collector.rotateMat();
                     aPress = true;
                 }
             }
             else
                 aPress = false;
+
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_UP))
+            {
+                if(!dupPress)
+                {
+                    robot.collector.stopRotation();
+                    robot.collector.addTicksWithPower((int)dupTicks, 0.5, 0.2);
+                    dupPress = true;
+                }
+            }
+            else
+                dupPress = false;
+
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_DOWN))
+            {
+                if(!ddownPress)
+                {
+                    robot.collector.stopRotation();
+                    robot.collector.addTicksWithPower((int)ddownTicks, 0.5, 0.2);
+                    ddownPress = true;
+                }
+            }
+            else
+                ddownPress = false;
 
             robot.collector.update();
             if(duta.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)
@@ -192,10 +246,126 @@ public class DriverControledDepot extends LinearOpMode {
 
             if(duta.getValue(MyGamepad.Axes.RIGHT_TRIGGER) > 0.3)   robot.collector.collect(0.5);
             else robot.collector.collect((double)matState * 1.0);
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_RIGHT))
+            {
+                if(!dpadr)
+                {
+                    robot.collector.closeHolder();
+                    dpadr = true;
+                }
+            }
+            else
+                dpadr = false;
+            if(duta.getRawValue(MyGamepad.Buttons.DPAD_LEFT))
+            {
+                if(!dpadl)
+                {
+                    robot.collector.openHolder();
+                    dpadl = true;
+                }
+            }
+            else
+                dpadl = false;
 
             robot.collector.showTelemetry();
             robot.lift.showTelemetry();
             telemetry.update();
         }
     }
+
+    public void initIMU() {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        //parameters.loggingEnabled      = true;
+        //parameters.loggingTag          = "IMU";
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
+        while (!imu.isGyroCalibrated() && timer.milliseconds() < 1000) {
+            telemetry.addData("Gyro", "Calibrating...");
+            telemetry.update();
+            if(!opModeIsActive())    return;
+        }
+        telemetry.addData("Gyro", "Calibrated");
+        telemetry.update();
+    }
+
+    public double getHeading() {
+        return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+    }
+
+    public void fancyRotation(double angle, double other, boolean forward) {
+        inRotation = true;
+        finalAngle = getHeading() + angle;
+        rotOther = other;
+        rotForward = forward;
+        lastPower = 0;
+    }
+
+    public void fancyRotationUpdate() {
+        if(inRotation == false) return;
+        double other = rotOther;
+        double myAngle = getHeading();
+        double accepted = 0.5;
+        double needAngle = finalAngle;
+        double maxDifference = 0.2;
+        double angleDecrease = 18.0 - (1.0 - other) * 5.0;
+        double distance = getAngleDistance(myAngle, needAngle);
+
+        if(Math.abs(distance) < 80) {
+            if(rotForward)  robot.runner.setFaceDegrees(0);
+            else robot.runner.setFaceDegrees(180);
+        }
+
+        if (Math.abs(distance) < accepted) {
+            inRotation = false;
+            robot.runner.reset(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            return;
+        }
+
+        double power = 0.0;
+
+        if (Math.abs(distance) < angleDecrease)
+            power = Math.abs(distance) / angleDecrease;
+        else
+            power = 1.0;
+
+        power = Math.min(power, lastPower + maxDifference);
+        power = Math.max(power, lastPower - maxDifference);
+        lastPower = power;
+        power = -power;
+        if (distance < 0) power = -power;
+        //power = getPower(power);
+
+        //runner.angleMove(0, 0, power);
+        if(rotForward == true)
+        {
+            if(power < 0)   robot.runner.fancyRotateMove(-power * other, -power);
+            else    robot.runner.fancyRotateMove(power, power * other);
+        }
+        else
+        {
+            if(power < 0)   robot.runner.fancyRotateMove(power, power * other);
+            else    robot.runner.fancyRotateMove(-power * other, -power);
+        }
+
+        if (!robot.opmode.opModeIsActive()) {
+            robot.runner.stop();
+            return;
+        }
+    }
+
+    public double getAngleDistance(double start, double fin) {
+        start = AngleUnit.normalizeDegrees(start);
+        fin = AngleUnit.normalizeDegrees(fin);
+        double dist = fin - start;
+        dist = AngleUnit.normalizeDegrees(dist);
+        return dist;
+    }
 }
+

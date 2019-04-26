@@ -190,7 +190,7 @@ public class MineralIdentifier {
         //telemetry.setAutoClear(false);
         //start();
         //opmode.sleep(1000);
-        int count = 10;
+        int count = 30;
         int[] fq = new int[3];
         for (int i = 0; i < count; i++) {
             int where = getGoldMineral();

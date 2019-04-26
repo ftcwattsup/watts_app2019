@@ -27,14 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.hardware.AutoMugurel;
-import org.firstinspires.ftc.teamcode.hardware.MineralIdentifier;
+import org.firstinspires.ftc.teamcode.hardware.Mugurel;
 
 
 /**
@@ -50,40 +49,31 @@ import org.firstinspires.ftc.teamcode.hardware.MineralIdentifier;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Test", group="Linear Opmode")
+@TeleOp(name="Extend Lander Depot", group="Linear Opmode")
 //@Disabled
-public class AutonomousTest extends LinearOpMode {
+public class ExtendLanderDepot extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
-    private AutoMugurel robot;
+    private Mugurel robot;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        robot = new AutoMugurel(hardwareMap, telemetry, this);
-        //robot.identifier.init();
-        robot.identifier.setType(MineralIdentifier.IdentifierType.LEFT_MID);
-        //robot.identifier.setMid(750);
-        //robot.autonomous.init();
+
+        robot = new Mugurel(hardwareMap);
+        robot.setOpmode(this);
+        robot.setTelemetry(telemetry);
         telemetry.update();
 
-        //waitForStart();
-        while (!opModeIsActive()&&!isStopRequested()) { telemetry.addData("Status", "Waiting in Init"); telemetry.update(); }
+        waitForStart();
         runtime.reset();
 
-        robot.autonomous.land();
-        robot.autonomous.harmlessArm();
-        robot.autonomous.rotateTo(15);
-        robot.autonomous.hook();
+        robot.collector.goToLanderPositionDepot();
 
-        int mineral = robot.identifier.findGold();
-
-        //robot.autonomous.rotateTo(52);
-
-        while(opModeIsActive()) {
-            telemetry.addData("min", mineral);
-            telemetry.update();
+        while(opModeIsActive())
+        {
+            ;
         }
     }
 }

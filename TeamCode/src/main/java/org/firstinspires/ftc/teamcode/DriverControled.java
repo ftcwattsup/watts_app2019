@@ -100,10 +100,10 @@ public class DriverControled extends LinearOpMode {
             telemetry.addData("Y", gaju.getValue(MyGamepad.Axes.LEFT_Y));
             telemetry.addData("R", gaju.getValue(MyGamepad.Axes.RIGHT_X));
 
-            if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(0);
-            else if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(Math.PI);
-            else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(Math.PI / 2.0);
-            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(-Math.PI / 2.0);
+            if(gaju.getValue(MyGamepad.Buttons.A) )    robot.runner.setFace(0);
+            else if(gaju.getValue(MyGamepad.Buttons.Y) )    robot.runner.setFace(Math.PI);
+            else if(gaju.getValue(MyGamepad.Buttons.B) )    robot.runner.setFace(Math.PI / 2.0);
+            else if(gaju.getValue(MyGamepad.Buttons.X) )    robot.runner.setFace(-Math.PI / 2.0);
 
             double modifier = 1.0;
             if(gaju.getValue(MyGamepad.Axes.LEFT_TRIGGER) > 0.3)    modifier = 0.3;

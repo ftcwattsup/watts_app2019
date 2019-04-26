@@ -30,11 +30,15 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.AutoMugurel;
 import org.firstinspires.ftc.teamcode.hardware.MineralIdentifier;
+import org.firstinspires.ftc.teamcode.hardware.Mugurel;
+
+import java.util.Random;
 
 
 /**
@@ -50,9 +54,9 @@ import org.firstinspires.ftc.teamcode.hardware.MineralIdentifier;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Test", group="Linear Opmode")
+@Autonomous(name="Autonomous Double Sample", group="Linear Opmode")
 //@Disabled
-public class AutonomousTest extends LinearOpMode {
+public class AutonomousDoubleSample extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private AutoMugurel robot;
@@ -61,7 +65,14 @@ public class AutonomousTest extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
+        double toWall = 1100;
+        double toDropMarker = 250;
+        double toDepot = 1100;
+        double inDepot = 500;
+
         robot = new AutoMugurel(hardwareMap, telemetry, this);
+        //robot.setOpmode(this);
+        //robot.initTelemetry(telemetry);
         //robot.identifier.init();
         robot.identifier.setType(MineralIdentifier.IdentifierType.LEFT_MID);
         //robot.identifier.setMid(750);
@@ -77,13 +88,58 @@ public class AutonomousTest extends LinearOpMode {
         robot.autonomous.rotateTo(15);
         robot.autonomous.hook();
 
-        int mineral = robot.identifier.findGold();
+        int mineral = 1;
+        mineral = robot.identifier.findGold();
 
-        //robot.autonomous.rotateTo(52);
+        //robot.autonomous.rotateTo(-90);
 
-        while(opModeIsActive()) {
-            telemetry.addData("min", mineral);
-            telemetry.update();
+        robot.autonomous.rotateTo(52);
+        robot.autonomous.moveForwardBackward(toWall, AutoMugurel.AutonomousMoveType.FORWARD);
+
+        robot.autonomous.prepareForExtend();
+        robot.autonomous.rotateTo(130);
+
+        robot.autonomous.extendForMarker();
+        robot.autonomous.moveForwardBackward(toDropMarker, AutoMugurel.AutonomousMoveType.FORWARD);
+        robot.autonomous.dropMarker();
+
+        robot.autonomous.harmlessArm();
+        robot.autonomous.prepareCollectDouble();
+
+        if(mineral == 0) {
+            robot.autonomous.rotateP(35);
+            robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.FORWARD);
+            robot.collector.extendGoToPositionWait(4400, 1);
+            robot.autonomous.collectDouble();
+            robot.autonomous.harmlessArm();
+            robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.BACKWARD);
         }
+        else if(mineral == 1) {
+            robot.autonomous.rotateP(28);
+            robot.collector.extendGoToPositionWait(2900, 1);
+            robot.autonomous.collectDouble();
+        }
+        else if(mineral == 2) {
+            robot.autonomous.rotateP(22);
+            robot.autonomous.collectDouble();
+        }
+
+        robot.autonomous.harmlessArm();
+        robot.autonomous.safeExtend();
+        robot.autonomous.rotateTo(130);
+        robot.autonomous.moveForwardBackward(toDropMarker, AutoMugurel.AutonomousMoveType.BACKWARD);
+        robot.autonomous.rotateTo(52);
+        robot.autonomous.moveForwardBackward(toWall, AutoMugurel.AutonomousMoveType.BACKWARD);
+
+        robot.autonomous.prepareCollect();
+
+        if(mineral == 0) robot.autonomous.rotateTo(16);
+        else if(mineral == 1)   robot.autonomous.rotateTo(-9);
+        else if(mineral == 2)   robot.autonomous.rotateTo(-34);
+
+        robot.autonomous.collectMineral();
+        robot.autonomous.park();
+
+        while(opModeIsActive()) { ; }
     }
 }

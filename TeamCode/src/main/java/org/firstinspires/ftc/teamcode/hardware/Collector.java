@@ -35,6 +35,7 @@ public class Collector {
     public double defaultPower = 0.9;
 
     public int extendLander = 4900;
+    public int extendLanderDepot = 4500;
     public int extendMax = 5450;
 
     public double matRevolution = 100;
@@ -199,6 +200,12 @@ public class Collector {
     public void goToLanderPosition() {
         extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extender.setTargetPosition(extendLander);
+        extender.setPower(1.0);
+    }
+
+    public void goToLanderPositionDepot() {
+        extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extender.setTargetPosition(extendLanderDepot);
         extender.setPower(1.0);
     }
 

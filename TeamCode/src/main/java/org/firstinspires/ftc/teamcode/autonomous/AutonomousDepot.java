@@ -76,6 +76,7 @@ public class AutonomousDepot extends LinearOpMode {
         robot.autonomous.rotateTo(15);
         robot.autonomous.hook();
 
+        sleep(200);
         int mineral = robot.identifier.findGold();
 
         robot.autonomous.prepareForDepotMarker();
@@ -90,12 +91,12 @@ public class AutonomousDepot extends LinearOpMode {
         robot.autonomous.prepareCollect();
 
         if(mineral == 0) robot.autonomous.rotateTo(15);
-        else if(mineral == 1)   robot.autonomous.rotateTo(-10);
+        else if(mineral == 1)   robot.autonomous.rotateTo(-12);
         else if(mineral == 2)   robot.autonomous.rotateTo(-35);
 
         robot.autonomous.collectMineral();
         //robot.autonomous.moveForwardBackward(150, AutoMugurel.AutonomousMoveType.FORWARD);
-        robot.autonomous.scoreMineral();
+        robot.autonomous.scoreMineralDepot();
 
         robot.autonomous.harmlessArm();
         robot.autonomous.safeExtend();

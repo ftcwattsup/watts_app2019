@@ -38,18 +38,22 @@ public class AutoMugurel extends Mugurel {
         public final int parkPos = -3800;
         public final int rotateParkDepot = -3900;
 
+        public int extendLanderDepot = 4500;
         public int extendLander = 4900;
         public int extendMax = 5400;
         public int preMarkerExtend = 4000;
         public int extendMarker = extendMax;
+        public int extendLoad = 2500;
 
         public int extendStart = 600;
         public int extendEnd = 3300;
 
         public double upTicksPre = 400;
         public double upAllTicks = 3150;
+        public double upAllTicksDepot = 3050;
         public double upTicksRotate = 2000 - upTicksPre;
         public double up2TicksRotate = upAllTicks - upTicksRotate - upTicksPre;
+        public double up2TicksRotateDepot = upAllTicksDepot - upTicksRotate - upTicksPre;
 
         Autonomous() {
             ;
@@ -104,14 +108,38 @@ public class AutoMugurel extends Mugurel {
             collector.collect(0);
         }
 
+        public void dropMarkerDoubleSample() {
+            while(collector.rot.isBusy() || collector.extender.isBusy() ) { ; }
+            collector.collect(-1.0);
+            opmode.sleep(500);
+            collector.collect(0);
+        }
+
+        public void prepareCollectDouble() {
+            collector.extendGoToPositionWait(   0, 1);
+        }
+
+        public void collectDouble() {
+            collector.rotateToPositionWait(rotateCollect, 0.7);
+            collector.collect(1);
+            collector.extendGoToPositionWait(collector.extender.getCurrentPosition() + 1100, 1);
+            //collector.extendGoToPositionWait(collector.extender.getCurrentPosition() - 200, 1);
+            collector.collect(0);
+        }
+
         public void prepareForDepotMarker() {
             collector.rotateToPosition(rotateMarker, 0.5);
             collector.extendGoToPosition(extendMarker);
         }
 
+        public void preDoubleSampleMarker() {
+            collector.rotateToPosition(parkPos, 0.8);
+            collector.extendGoToPosition(0);
+        }
+
         public void parkDepot() {
             collector.rotateToPosition(rotateParkDepot, 0.5);
-            collector.extendGoToPosition(extendLander);
+            collector.extendGoToPosition(extendLanderDepot);
         }
 
         public void safeExtend() {
@@ -146,9 +174,34 @@ public class AutoMugurel extends Mugurel {
             collector.rotateToPositionWait(collector.rot.getTargetPosition() + (int)up2TicksRotate, 0.5);
             collector.openHolder();
             collector.collect(0.5);
-            opmode.sleep(400);
+            opmode.sleep(700);
             collector.collect(0);
             collector.closeHolder();
+        }
+
+        public void scoreMineralDepot() {
+            //collector.stopRotation();
+
+            collector.rotateToPosition(collector.rot.getCurrentPosition() + (int)upTicksPre, 0.9);
+            collector.goToLanderPositionDepot();
+            collector.rotateToPosition(collector.rot.getTargetPosition() + (int)upTicksRotate, 0.9);
+            rotateTo(0);
+            moveLeftRight(190, AutonomousMoveType.RIGHT);
+            collector.rotateToPositionWait(collector.rot.getTargetPosition() + (int)up2TicksRotateDepot, 0.5);
+            collector.openHolder();
+            collector.collect(0.5);
+            opmode.sleep(700);
+            collector.collect(0);
+            collector.closeHolder();
+            moveLeftRight(190, AutonomousMoveType.LEFT);
+        }
+
+        public void loadMinerals() {
+            collector.extendGoToPosition(extendLoad);
+            moveForwardBackward(200, AutonomousMoveType.FORWARD);
+            collector.rotateToPositionWait(rotateCollect, 0.6);
+            collector.collect(1);
+            collector.extendGoToPosition(extendLander);
         }
 
         public void makeCycle() {
