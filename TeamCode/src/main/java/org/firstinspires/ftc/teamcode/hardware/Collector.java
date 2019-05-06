@@ -40,8 +40,8 @@ public class Collector {
 
     public double matRevolution = 100;
 
-    public double holdClosed = 0.3;
-    public double holdOpen = 0.08;
+    public double holdClosed = 0.28;
+    public double holdOpen = 0.04;
 
     public RotationOperation nowPlaying = new RotationOperation();
 

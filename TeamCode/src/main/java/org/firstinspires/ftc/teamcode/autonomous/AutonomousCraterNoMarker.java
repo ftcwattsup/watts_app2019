@@ -50,9 +50,9 @@ import org.firstinspires.ftc.teamcode.hardware.MineralIdentifier;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Autonomous Crater", group="Linear Opmode")
+@Autonomous(name="Autonomous Crater No Marker", group="Linear Opmode")
 //@Disabled
-public class AutonomousCrater extends LinearOpMode {
+public class AutonomousCraterNoMarker extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private AutoMugurel robot;
@@ -83,22 +83,6 @@ public class AutonomousCrater extends LinearOpMode {
 
         robot.autonomous.rotateTo(52);
 
-        robot.autonomous.prepareForExtend();
-        robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.FORWARD);
-
-        robot.autonomous.rotateTo(125);
-        robot.autonomous.extendForMarker();
-        robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.FORWARD);
-
-        robot.autonomous.dropMarker();
-
-        robot.autonomous.harmlessArm();
-        robot.autonomous.safeExtend();
-
-        robot.autonomous.moveForwardBackward(250, AutoMugurel.AutonomousMoveType.BACKWARD);
-        robot.autonomous.rotateTo(52);
-        robot.autonomous.moveForwardBackward(1000, AutoMugurel.AutonomousMoveType.BACKWARD);
-
         robot.autonomous.prepareCollect();
 
         if(mineral == 0) robot.autonomous.rotateTo(16);
@@ -112,10 +96,10 @@ public class AutonomousCrater extends LinearOpMode {
         //robot.autonomous.harmlessArm();
         //robot.autonomous.loadMinerals();
         robot.autonomous.park();
-        //robot.autonomous.loadMat();
 
         //robot.autonomous.rotateTo(0);
 
+        robot.autonomous.loadMat();
 
         while(opModeIsActive()) {
             telemetry.addData("Mineral", mineral);

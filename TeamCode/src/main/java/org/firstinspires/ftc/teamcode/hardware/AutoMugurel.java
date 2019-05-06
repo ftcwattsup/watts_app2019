@@ -44,6 +44,7 @@ public class AutoMugurel extends Mugurel {
         public int preMarkerExtend = 4000;
         public int extendMarker = extendMax;
         public int extendLoad = 2500;
+        public int extendCrater = 4000;
 
         public int extendStart = 600;
         public int extendEnd = 3300;
@@ -206,23 +207,54 @@ public class AutoMugurel extends Mugurel {
 
         public void makeCycle() {
             collector.collect(1);
-            collector.rotateToPosition(collector.rot.getCurrentPosition() - (int)upAllTicks, 0.7);
-            moveForwardBackward(150, AutonomousMoveType.FORWARD);
+            harmlessArm();
+            //collector.rotateToPosition(collector.rot.getCurrentPosition() - (int)upAllTicks, 0.7);
+            collector.extendGoToPosition(extendCrater);
+            //moveForwardBackward(200, AutonomousMoveType.FORWARD);
+            collector.rotateToPositionWait(rotateCollect, 0.7);
 
             while(collector.rot.isBusy())   {;}
 
             collector.extendGoToPositionWait(extendEnd, 1);
-            collector.extendGoToPositionWait(extendEnd - 600, 1);
+            collector.extendGoToPositionWait(extendEnd - 1000, 1);
+            collector.extendGoToPositionWait(extendEnd, 1);
 
+            moveForwardBackward(150, AutonomousMoveType.FORWARD);
+            moveForwardBackward(150, AutonomousMoveType.BACKWARD);
+
+            collector.collect(-1);
+            opmode.sleep(500);
             collector.collect(0);
             collector.extendGoToPosition(extendLander, 1);
             collector.rotateToPosition(collector.rot.getCurrentPosition() + (int)upAllTicks, 0.8);
-            moveForwardBackward(150, AutonomousMoveType.BACKWARD);
+            moveForwardBackward(200, AutonomousMoveType.BACKWARD);
 
             collector.openHolder();
             collector.collect(0.5);
-            opmode.sleep(400);
+            opmode.sleep(600);
             collector.closeHolder();
+        }
+
+        public void loadMat() {
+            collector.collect(1);
+            harmlessArm();
+            //collector.rotateToPosition(collector.rot.getCurrentPosition() - (int)upAllTicks, 0.7);
+            collector.extendGoToPosition(extendCrater);
+            //moveForwardBackward(200, AutonomousMoveType.FORWARD);
+            collector.rotateToPositionWait(rotateCollect, 0.7);
+
+            while(collector.rot.isBusy())   {;}
+
+            collector.extendGoToPositionWait(extendEnd, 1);
+            collector.extendGoToPositionWait(extendEnd - 1000, 1);
+            collector.extendGoToPositionWait(extendEnd, 1);
+
+            moveForwardBackward(150, AutonomousMoveType.FORWARD);
+            moveForwardBackward(150, AutonomousMoveType.BACKWARD);
+
+            collector.extendGoToPosition(extendLander);
+            opmode.sleep(500);
+            collector.collect(0);
         }
 
         public void park() {
